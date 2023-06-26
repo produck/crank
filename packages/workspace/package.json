@@ -1,11 +1,29 @@
 {
-  "name": "crank",
+  "name": "@produck/crank",
   "version": "0.1.0",
-  "description": "crank workspace",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "description": "executor framework",
+  "license": "MIT",
+  "keywords": [],
+  "author": "Leoword <leoword@qq.com>",
+  "homepage": "https://github.com/produck/crank#readme",
+  "main": "index.cjs",
+  "type": "module",
+  "exports": {
+    "import": "./src/index.mjs",
+    "require": "./src/index.cjs"
   },
-  "author": "",
-  "license": "MIT"
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/produck/crank"
+  },
+  "bugs": {
+    "url": "https://github.com/produck/crank/issues"
+  },
+  "devDependencies": {
+    "mocha": "^10.2.0",
+    "rollup": "^3.25.2"
+  },
+  "scripts": {
+    "test": "mocha src/index.spec.mjs"
+  }
 }

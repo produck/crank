@@ -1,0 +1,21 @@
+{
+  "name": "@produck/crank-workspace",
+  "private": true,
+  "scripts": {
+    "deps:install": "npm -v && npm i",
+    "lint": "eslint --fix packages/**/*.mjs",
+		"test": "npm run test --workspaces",
+		"publish": "npm run lint && npm run test && lerna publish --no-private",
+		"coverage": "c8 --exclude=**/*.spec** --reporter=lcov npm run test"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "c8": "^8.0.0",
+    "eslint": "^8.43.0",
+    "lerna": "^7.0.2",
+    "mocha": "^10.2.0"
+  },
+	"workspaces": [
+		"packages/*"
+	]
+}

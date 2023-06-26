@@ -1,13 +1,30 @@
 {
-  "name": "example",
+  "name": "@produck/crank-example",
   "version": "0.1.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "",
+  "private": true,
+  "description": "example of use crank",
   "license": "MIT",
+  "keywords": [],
+  "author": "Leoword <leoword@qq.com>",
+  "homepage": "https://github.com/produck/crank#readme",
+  "main": "index.cjs",
+  "type": "module",
+  "exports": {
+    "import": "./src/index.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/produck/crank"
+  },
+  "bugs": {
+    "url": "https://github.com/produck/crank/issues"
+  },
+  "devDependencies": {
+    "mocha": "^10.2.0"
+  },
+  "scripts": {
+    "test": "mocha src/index.spec.mjs"
+  },
   "dependencies": {
     "crank": "^0.1.0"
   }
