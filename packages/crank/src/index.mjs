@@ -1,1 +1,1 @@
-export const compare = function () { return true; };
+export * from './define.mjs';

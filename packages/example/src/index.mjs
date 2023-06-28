@@ -1,8 +1,8 @@
-function a() {
+import Crank from '@produck/crank'
 
-	return 1;
-	console.log(2);
-}
+const custom = Crank('testEngine', {}, { scope: function () {}, call: function () {} });
+
+console.log(custom, custom.name)
 
 export const compare2 = function () {
 	return true;
