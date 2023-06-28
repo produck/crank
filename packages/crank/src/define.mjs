@@ -1,11 +1,10 @@
-// import Scope from './Scope'
-import { Program } from './Program.mjs';
 import * as Engine from './Engine.mjs';
 import { CallInstruction, Instruction } from './Instruction.mjs';
+import { Program } from './Program.mjs';
 
 const DEFAULT_CALL = (_s, _sc, next) => next();
 
-// options.{Context, name, call, Scope};
+// options.{Context, name, call};
 
 export function defineEngine(options, executors = {}) {
 	class CustomCallInstruction extends CallInstruction {
@@ -14,39 +13,49 @@ export function defineEngine(options, executors = {}) {
 		}
 	}
 
-	const InstructionSet = {};
-
-	for (const name of executors) {
-		const INSTRUCTION_NAME = `${name}Instruction`;
-		const executor = executors[name];
-
-		const CustomInstruction = {
-			[INSTRUCTION_NAME]: class extends Instruction {
-				_execute(scope) {
-					executor(scope, ...this.args);
-				}
-			},
-		}[INSTRUCTION_NAME];
-
-		InstructionSet[name] = (...args) => new CustomInstruction(...args).token;
-	}
-
-	const PROGRAM_NAME = `${options.name}Program`;
-
-	const CustomProgram = { [PROGRAM_NAME]: class extends Program {
-		$ = InstructionSet;
-		static CallInstruction = CustomCallInstruction;
-	} }[PROGRAM_NAME];
-
 	const ENGINE_NAME = `${options.name}Engine`;
 
 	const CustomEngine = { [ENGINE_NAME]: class extends Engine.Base {
+		CallInstruction = CustomCallInstruction;
 
+		constructor() {
+			super();
+
+			for (const name of executors) {
+				const INSTRUCTION_NAME = `${name}Instruction`;
+				const executor = executors[name];
+
+				const CustomInstruction = {
+					[INSTRUCTION_NAME]: class extends Instruction {
+						_execute(frame) {
+							executor(frame, ...this.args);
+						}
+					},
+				}[INSTRUCTION_NAME];
+
+				const proxy = (...args) => new CustomInstruction(this, ...args).token;
+
+				this.InstrucionSet[name] = proxy;
+			}
+
+			Object.freeze(this.InstrucionSet);
+			Object.freeze(this);
+		}
 	} }[ENGINE_NAME];
 
-	Engine.set(CustomEngine, CustomProgram);
+	const PROXY_NAME = `${ENGINE_NAME}Prxoy`;
 
-	return CustomEngine;
+	return { [PROXY_NAME]: class {
+		#engine = new CustomEngine();
+
+		execute(...args) {
+			return this.#engine.execute(...args);
+		}
+
+		static compile(script) {
+			return new Program(script);
+		}
+	} }[PROXY_NAME];
 }
 
 export { defineEngine as Engine };

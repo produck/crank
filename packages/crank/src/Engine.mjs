@@ -1,26 +1,46 @@
-import { Scope } from './Scope.mjs';
+import { Frame } from './Frame.mjs';
 import * as Instruction from './Instruction.mjs';
 
-/** @type {WeakMap<typeof Engine, typeof import('./Program.mjs').Program>} */
-const PROGRAM_MAP = new WeakMap();
+/**@type {WeakMap<import('./Program.mjs').Program, Engine>} */
+const BINDING = new WeakMap();
 
-export const set = (Engine, Program) => PROGRAM_MAP.set(Engine, Program);
+export const getByProgram = program => BINDING.get(program);
 
 export class Engine {
-	#Process;
+	CallInstruction = Instruction.Call;
+	InstrucionSet = {};
 
-	constructor () {
-		this.#Process = PROGRAM_MAP.get(new.target);
+	stack = [];
+	busy = false;
+
+	call(routine) {
+		return new this.CallInstruction(this, routine).token;
 	}
 
-	execute(script, context) {
-		const globalScope = new Scope();
-		const process = new this.#Process(script);
+	get top() {
+		return this.stack[0];
+	}
+
+	execute(program, context) {
+		if (this.busy) {
+			throw 0;
+		}
+
+		if (BINDING.has(program)) {
+			throw 1;
+		}
+
+		BINDING.set(program, this);
+		this.busy = true;
+
+		const bottomFrame = new Frame();
 		const mainToken = program.main(...context.args);
 
-		Instruction.getByToken(mainToken).execute(globalScope);
+		Instruction.getByToken(mainToken).execute(this, bottomFrame);
+		this.busy = false;
+		BINDING.delete(program);
 
-		return process.globalScope.ret;
+		return process.bottomFrame.ret;
 	}
 }
 

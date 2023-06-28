@@ -1,20 +1,20 @@
-import { CallInstruction } from './Instruction.mjs';
-import { Scope } from './Scope.mjs';
+import * as Engine from './Engine.mjs';
 
 function assertScript() {
 
 }
 
 export class Program {
-	static CallInstruction = CallInstruction;
-	globalScope = new Scope();
+	get #vm() {
+		return Engine.getByProgram(this);
+	}
 
-	$ = {};
+	get $() {
+		return this.#vm.InstrucionSet;
+	}
 
 	constructor(script) {
 		assertScript(script);
-
-		const { CallInstruction } = new.target;
 
 		for (const name in script) {
 			const fn = script[name];
@@ -22,7 +22,7 @@ export class Program {
 			this[name] = (...args) => {
 				const routine = fn.call(this, ...args);
 
-				return new CallInstruction(this.globalScope, routine).token;
+				return this.#vm.call(routine);
 			};
 		}
 
