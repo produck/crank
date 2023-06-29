@@ -1,7 +1,19 @@
 import * as Engine from './Engine.mjs';
 
-function assertScript() {
+function assertScript(script) {
+	if (typeof script !== 'object') {
+		throw 1;
+	}
 
+	for (const key in script) {
+		if (typeof script[key] !== 'function') {
+			throw 1;
+		}
+	}
+
+	if (!script.main) {
+		throw 1;
+	}
 }
 
 export class Program {
@@ -26,7 +38,6 @@ export class Program {
 			};
 		}
 
-		Object.freeze(this.$);
 		Object.freeze(this);
 	}
 }

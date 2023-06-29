@@ -34,13 +34,16 @@ export class Engine {
 		this.busy = true;
 
 		const bottomFrame = new Frame();
-		const mainToken = program.main(...context.args);
 
-		Instruction.getByToken(mainToken).execute(this, bottomFrame);
+		this.stack.unshift(bottomFrame);
+
+		const mainToken = program.main(...context.args);
+		Instruction.getByToken(mainToken).execute(bottomFrame);
+
+		this.stack.shift(bottomFrame);
+
 		this.busy = false;
 		BINDING.delete(program);
-
-		return process.bottomFrame.ret;
 	}
 }
 

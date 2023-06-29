@@ -99,7 +99,6 @@ export function defineEngine(...args) {
 			}
 
 			Object.freeze(this.InstrucionSet);
-			Object.freeze(this);
 		}
 	} }[ENGINE_NAME];
 
@@ -108,8 +107,17 @@ export function defineEngine(...args) {
 	return { [PROXY_NAME]: class {
 		#engine = new CustomEngine();
 
-		execute(...args) {
-			return this.#engine.execute(...args);
+		execute(program, context) {
+
+			if (Object.getPrototypeOf(program) !== Program.prototype) {
+				throw 1;
+			}
+
+			if (Object.getPrototypeOf(context) !== options.Context.prototype) {
+				throw 1;
+			}
+
+			return this.#engine.execute(program, context);
 		}
 
 		static compile(script) {

@@ -9,14 +9,13 @@ export class Instruction {
 	vm = null;
 	args = [];
 	done = false;
-	token = Symbol();
+	token = Object.freeze({ token: true });
 
 	constructor(vm, ...args) {
 		this.vm = vm;
 		this.args = args;
-
-		CACHE.set(this.token, Instruction);
-		vm.top.currentInstruction = this;
+		CACHE.set(this.token, this);
+		this.vm.top.currentInstruction = this;
 	}
 
 	execute(frame) {
@@ -46,7 +45,7 @@ export class CallInstruction extends Instruction {
 				break;
 			}
 
-			const instruction = value;
+			const instruction = getByToken(value);
 
 			if (instruction !== frame.currentInstruction) {
 				throw 'not current ins.';
@@ -54,7 +53,7 @@ export class CallInstruction extends Instruction {
 
 			try {
 				thrown = false;
-				nextValue = value.execute(this.vm, frame);
+				nextValue = instruction.execute(this.vm, frame);
 			} catch (error) {
 				thrown = true;
 				nextValue = error;
@@ -62,11 +61,11 @@ export class CallInstruction extends Instruction {
 		}
 	}
 
-	_execute(vm, frame) {
+	_execute(frame) {
 		const nextFrame = new Frame();
 
 		let called = false;
-		vm.stack.unshift(nextFrame);
+		this.vm.stack.unshift(nextFrame);
 
 		this._invoke(frame, nextFrame, () => {
 			if (called) {
@@ -81,7 +80,7 @@ export class CallInstruction extends Instruction {
 			throw 3;
 		}
 
-		vm.stack.shift();
+		this.vm.stack.shift();
 
 		return nextFrame.ret;
 	}
