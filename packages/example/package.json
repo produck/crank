@@ -23,8 +23,6 @@
 		"mocha": "^10.2.0"
   },
   "scripts": {
-    "test": "mocha src/index.spec.mjs",
-		"run": "node src/index.mjs"
   },
   "dependencies": {
   }
