@@ -27,17 +27,13 @@ export function defineEngine(...args) {
 				const INSTRUCTION_NAME = `${name}Instruction`;
 				const executor = executors[name];
 
-				const CustomInstruction = {
+				this.InstrucionSet[name] = {
 					[INSTRUCTION_NAME]: class extends Instruction {
-						_execute(frame) {
-							executor(frame, ...this.args);
+						_execute(ctx) {
+							executor(ctx, ...this.args); // 传Context
 						}
 					},
 				}[INSTRUCTION_NAME];
-
-				const proxy = (...args) => new CustomInstruction(this, ...args).token;
-
-				this.InstrucionSet[name] = proxy;
 			}
 
 			Object.freeze(this.InstrucionSet);
@@ -49,16 +45,16 @@ export function defineEngine(...args) {
 	return { [PROXY_NAME]: class {
 		#engine = new CustomEngine();
 
-		execute(program, context) {
+		execute(program, extern) {
 			if (!Utils.Instance(program, Program)) {
 				Utils.TypeError('program', 'Program');
 			}
 
-			if (!Utils.Instance(context, options.Context)) {
-				Utils.TypeError('cotext', 'CustomContext');
+			if (!Utils.Instance(extern, options.Extern)) {
+				Utils.TypeError('extern', 'CustomExtern');
 			}
 
-			return this.#engine.execute(program, context);
+			return this.#engine.execute(program, extern);
 		}
 
 		static compile(script) {

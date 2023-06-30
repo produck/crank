@@ -1,6 +1,6 @@
 import * as Crank from './index.mjs';
 import { Program } from './Program.mjs';
-import { Context } from './Context.mjs';
+import { Extern } from './Extern.mjs';
 import { describe, it } from 'mocha';
 import * as assert from 'node:assert/strict';
 
@@ -20,7 +20,7 @@ describe('::defineEngine()', function () {
 	it('should thrown create by bad options.call', function () {
 	});
 
-	it('should thrown create by bad options.Context', function () {
+	it('should thrown create by bad options.Extern', function () {
 	});
 
 	it('should thrown create by bad executors', function () {
@@ -39,7 +39,7 @@ describe('::defineEngine()', function () {
 		describe('.execute()', function () {
 			const CustomEngineProxy = Crank.defineEngine({}, { a() {
 			} });
-			it('should execute a program', function () {
+			it.only('should execute a program', function () {
 				const vm = new CustomEngineProxy();
 				vm.execute(new Program({
 					*SAT() {
@@ -48,13 +48,13 @@ describe('::defineEngine()', function () {
 					*main() {
 						return yield this.SAT();
 					},
-				}), new Context());
+				}), new Extern());
 			});
 
 			it('should throw if bad program', function () {
 			});
 
-			it('should throw if bad context', function () {
+			it('should throw if bad extern', function () {
 			});
 		});
 

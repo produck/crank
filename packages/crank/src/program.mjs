@@ -1,13 +1,13 @@
-import * as Engine from './Engine.mjs';
+import * as Process from './Process.mjs';
 import { normalizeScript } from './Options.mjs';
 
 export class Program {
-	get #vm() {
-		return Engine.getByProgram(this);
+	get #process() {
+		return Process.getByProgram(this);
 	}
 
 	get $() {
-		return this.#vm.InstrucionSet;
+		return this.#process.instructions;
 	}
 
 	constructor(script) {
@@ -19,7 +19,7 @@ export class Program {
 			this[name] = (...args) => {
 				const routine = fn.call(this, ...args);
 
-				return this.#vm.call(routine);
+				return this.#process.call(routine);
 			};
 		}
 

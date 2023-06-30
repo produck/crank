@@ -1,4 +1,4 @@
-import { Context } from './Context.mjs';
+import { Extern } from './Extern.mjs';
 import { S, P, Cust, Normalizer, PROPERTY, U } from '@produck/mold';
 
 const DEFAULT_CALL = (_s, _sc, next) => next();
@@ -6,12 +6,12 @@ const DEFAULT_CALL = (_s, _sc, next) => next();
 const OptionsSchema = Cust(S.Object({
 	name: P.String('Crank'),
 	call: P.Function(DEFAULT_CALL),
-	Context: P.Function(Context),
+	Extern: P.Function(Extern),
 }), (_value, _empty, next) => {
 	const options = next();
 
-	if (options.Context !== Context && !Object.prototype.isPrototypeOf.call(Context, options.Context)) {
-		U.throwError('.Context', 'sub class of Context');
+	if (options.Extern !== Extern && !Object.prototype.isPrototypeOf.call(Extern, options.Extern)) {
+		U.throwError('.Extern', 'sub class of Extern');
 	}
 
 	return options;
@@ -19,11 +19,11 @@ const OptionsSchema = Cust(S.Object({
 
 export const normalizeOptions = Normalizer(OptionsSchema);
 
-const ExecutorSchema = S.Object({
+const ExecutorsSchema = S.Object({
 	[PROPERTY]: P.Function(),
 });
 
-export const normalizeExecutors = Normalizer(ExecutorSchema);
+export const normalizeExecutors = Normalizer(ExecutorsSchema);
 
 const GeneratorFunction = (function* () {}).constructor;
 

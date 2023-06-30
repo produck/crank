@@ -8,24 +8,31 @@ const CACHE = new WeakMap();
 export const getByToken = token => CACHE.get(token);
 
 export class Instruction {
-	vm = null;
+	process = null;
+	frame = null;
+
 	args = [];
 	done = false;
 	token = Object.freeze({ token: true });
 
-	constructor(vm, ...args) {
-		this.vm = vm;
+	constructor(process, frame, ...args) {
+		this.process = process;
+		this.frame = frame;
 		this.args = args;
 		CACHE.set(this.token, this);
-		this.vm.top.currentInstruction = this;
+		this.process.top.currentInstruction = this;
 	}
 
-	execute(frame) {
+	execute() {
 		if (this.done) {
 			RuntimeError(0);
 		}
 
-		this._execute(frame);
+		this._execute();
+	}
+
+	_execute() {
+		throw 1;
 	}
 }
 
@@ -33,8 +40,6 @@ export class CallInstruction extends Instruction {
 	begin(frame) {
 		const [routine] = this.args;
 		let nextValue, thrown = false;
-
-		frame.routine = routine;
 
 		while (true) {
 			const { value, done } = thrown
@@ -55,7 +60,7 @@ export class CallInstruction extends Instruction {
 
 			try {
 				thrown = false;
-				nextValue = instruction.execute(this.vm, frame);
+				nextValue = instruction.execute();
 			} catch (error) {
 				thrown = true;
 				nextValue = error;
@@ -63,13 +68,14 @@ export class CallInstruction extends Instruction {
 		}
 	}
 
-	_execute(frame) {
+	_execute() {
 		const nextFrame = new Frame();
 
-		let called = false;
-		this.vm.stack.unshift(nextFrame);
+		this.process.stack.unshift(nextFrame);
 
-		this._invoke(frame, nextFrame, () => {
+		let called = false;
+
+		this._invoke(this.frame, nextFrame, () => {
 			if (called) {
 				RuntimeError(2);
 			}
@@ -82,13 +88,13 @@ export class CallInstruction extends Instruction {
 			RuntimeError(3);
 		}
 
-		this.vm.stack.shift();
+		this.process.stack.shift();
 
 		return nextFrame.ret;
 	}
 
-	_invoke(frame, nextFrame, next) {
-
+	_invoke(_frame, _nextFrame, next) {
+		next();
 	}
 }
 

@@ -1,51 +1,18 @@
-import { Frame } from './Frame.mjs';
 import * as Instruction from './Instruction.mjs';
-
-import { RuntimeError } from './Utils.mjs';
-
-/**@type {WeakMap<import('./Program.mjs').Program, Engine>} */
-const BINDING = new WeakMap();
-
-export const getByProgram = program => BINDING.get(program);
+import { Process } from './Process.mjs';
 
 export class Engine {
+	name = '';
+
 	CallInstruction = Instruction.Call;
 	InstrucionSet = {};
 
-	stack = [];
-	busy = false;
-
-	call(routine) {
-		return new this.CallInstruction(this, routine).token;
+	constructor() {
+		this.name = new.target.name;
 	}
 
-	get top() {
-		return this.stack[0];
-	}
-
-	execute(program, context) {
-		if (this.busy) {
-			RuntimeError(0);
-		}
-
-		if (BINDING.has(program)) {
-			RuntimeError(1);
-		}
-
-		BINDING.set(program, this);
-		this.busy = true;
-
-		const bottomFrame = new Frame();
-
-		this.stack.unshift(bottomFrame);
-
-		const mainToken = program.main(...context.args);
-		Instruction.getByToken(mainToken).execute(bottomFrame);
-
-		this.stack.shift(bottomFrame);
-
-		this.busy = false;
-		BINDING.delete(program);
+	execute(program, extern) {
+		new Process(this).execute(program, extern);
 	}
 }
 
