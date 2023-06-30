@@ -1,6 +1,8 @@
 import { Frame } from './Frame.mjs';
 import * as Instruction from './Instruction.mjs';
 
+import { RuntimeError } from './Utils.mjs';
+
 /**@type {WeakMap<import('./Program.mjs').Program, Engine>} */
 const BINDING = new WeakMap();
 
@@ -23,11 +25,11 @@ export class Engine {
 
 	execute(program, context) {
 		if (this.busy) {
-			throw 0;
+			RuntimeError(0);
 		}
 
 		if (BINDING.has(program)) {
-			throw 1;
+			RuntimeError(1);
 		}
 
 		BINDING.set(program, this);

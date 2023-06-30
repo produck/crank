@@ -1,20 +1,5 @@
 import * as Engine from './Engine.mjs';
-
-function assertScript(script) {
-	if (typeof script !== 'object') {
-		throw 1;
-	}
-
-	for (const key in script) {
-		if (typeof script[key] !== 'function') {
-			throw 1;
-		}
-	}
-
-	if (!script.main) {
-		throw 1;
-	}
-}
+import { normalizeScript } from './Options.mjs';
 
 export class Program {
 	get #vm() {
@@ -26,7 +11,7 @@ export class Program {
 	}
 
 	constructor(script) {
-		assertScript(script);
+		normalizeScript(script);
 
 		for (const name in script) {
 			const fn = script[name];

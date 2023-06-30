@@ -1,5 +1,7 @@
 import { Frame } from './Frame.mjs';
 
+import { RuntimeError } from './Utils.mjs';
+
 /** @type {WeakMap<symbol, Instruction>} */
 const CACHE = new WeakMap();
 
@@ -20,7 +22,7 @@ export class Instruction {
 
 	execute(frame) {
 		if (this.done) {
-			throw 0;
+			RuntimeError(0);
 		}
 
 		this._execute(frame);
@@ -48,7 +50,7 @@ export class CallInstruction extends Instruction {
 			const instruction = getByToken(value);
 
 			if (instruction !== frame.currentInstruction) {
-				throw 'not current ins.';
+				RuntimeError('not current ins.');
 			}
 
 			try {
@@ -69,7 +71,7 @@ export class CallInstruction extends Instruction {
 
 		this._invoke(frame, nextFrame, () => {
 			if (called) {
-				throw 2;
+				RuntimeError(2);
 			}
 
 			called = true;
@@ -77,7 +79,7 @@ export class CallInstruction extends Instruction {
 		});
 
 		if (!called) {
-			throw 3;
+			RuntimeError(3);
 		}
 
 		this.vm.stack.shift();
