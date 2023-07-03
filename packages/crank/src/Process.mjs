@@ -15,7 +15,6 @@ export const getByProgram = program => BINDING.get(program);
 
 export class Process {
 	vm = null;
-	program = null;
 	stack = [];
 	instructions = {};
 
@@ -23,9 +22,8 @@ export class Process {
 		return this.stack[0];
 	}
 
-	constructor(vm, program) {
+	constructor(vm) {
 		this.vm = vm;
-		this.program = program;
 
 		for (const name in vm.InstrucionSet) {
 			const CustomInstruction = vm.InstrucionSet[name];

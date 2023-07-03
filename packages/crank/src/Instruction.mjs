@@ -10,29 +10,24 @@ export const getByToken = token => CACHE.get(token);
 export class Instruction {
 	process = null;
 	frame = null;
-
 	args = [];
-	done = false;
 	token = Object.freeze({ token: true });
 
 	constructor(process, frame, ...args) {
 		this.process = process;
 		this.frame = frame;
 		this.args = args;
+
 		CACHE.set(this.token, this);
 		this.process.top.currentInstruction = this;
 	}
 
 	execute() {
-		if (this.done) {
-			RuntimeError(0);
-		}
-
 		this._execute();
 	}
 
 	_execute() {
-		throw 1;
+		RuntimeError(1);
 	}
 }
 
@@ -41,7 +36,7 @@ export class CallInstruction extends Instruction {
 		const [routine] = this.args;
 		let nextValue, thrown = false;
 
-		while (true) {
+		while (true) { // 允许提前退出功能
 			const { value, done } = thrown
 				? routine.throw(nextValue)
 				: routine.next(nextValue);

@@ -1,11 +1,17 @@
 import { RuntimeError } from './Utils.mjs';
 
 export class Extern {
-	constructor (args = []) {
+	#args = [];
+
+	get args() {
+		return this.#args;
+	}
+
+	constructor (args) {
 		if (args && !(Symbol.iterator in args)) {
-			RuntimeError();
+			RuntimeError(1);
 		}
 
-		this.args = args;
+		this.#args = args || this.#args;
 	}
 }

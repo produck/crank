@@ -30,16 +30,14 @@ describe('::defineEngine()', function () {
 	});
 
 	describe('>CustomEngineProxy', function () {
-		it('should create a custom engine proxxy', function () {
-			const CustomEngineProxy = Crank.defineEngine({}, { a: () => {} });
+		const CustomEngineProxy = Crank.defineEngine({}, { a: () => {} });
 
+		it('should create a custom engine proxxy', function () {
 			new CustomEngineProxy();
 		});
 
 		describe('.execute()', function () {
-			const CustomEngineProxy = Crank.defineEngine({}, { a() {
-			} });
-			it.only('should execute a program', function () {
+			it('should execute a program', function () {
 				const vm = new CustomEngineProxy();
 				vm.execute(new Program({
 					*SAT() {
@@ -59,8 +57,6 @@ describe('::defineEngine()', function () {
 		});
 
 		describe('::compile()', function () {
-			const CustomEngineProxy = Crank.defineEngine({}, { a: () => {} });
-
 			it('should return a program', function () {
 				const program = CustomEngineProxy.compile({
 					*main () {},

@@ -1,6 +1,7 @@
 import * as Engine from './Engine.mjs';
 import { CallInstruction, Instruction } from './Instruction.mjs';
 import { Program } from './Program.mjs';
+import { ProcessProxy } from './Context.mjs';
 
 import * as Utils from './Utils.mjs';
 import * as Options from './Options.mjs';
@@ -11,7 +12,7 @@ export function defineEngine(...args) {
 
 	class CustomCallInstruction extends CallInstruction {
 		_invoke(...args) {
-			options.call(...args);
+			options.call(...args); // 传Context
 		}
 	}
 
@@ -29,8 +30,8 @@ export function defineEngine(...args) {
 
 				this.InstrucionSet[name] = {
 					[INSTRUCTION_NAME]: class extends Instruction {
-						_execute(ctx) {
-							executor(ctx, ...this.args); // 传Context
+						_execute() {
+							executor(...this.args); // 传Context
 						}
 					},
 				}[INSTRUCTION_NAME];

@@ -3,7 +3,6 @@ import { Process } from './Process.mjs';
 
 export class Engine {
 	name = '';
-
 	CallInstruction = Instruction.Call;
 	InstrucionSet = {};
 
