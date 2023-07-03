@@ -5,8 +5,12 @@ export class Engine {
 	CallInstruction = Instruction.Call;
 	InstrucionSet = {};
 
-	createProcess(program, extern) {
-		return new Process(this, program, extern);
+	async execute(program, extern) {
+		const process = new Process(this, program);
+
+		await process.run(extern);
+
+		return process.top.ret;
 	}
 }
 

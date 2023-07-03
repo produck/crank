@@ -1,49 +1,63 @@
-import * as Instruction from './Instruction.mjs';
 import { Frame } from './Frame.mjs';
 
 class Runtime {
 	instructions = {};
 }
 
+class ProcessProxy {
+	#process;
+
+	constructor(process) {
+		this.#process = process;
+	}
+}
+
 export class Process {
-	vm = null;
-	stack = [];
-	runtime = new Runtime();
+	stack = [new Frame()];
 
 	get top() {
 		return this.stack[0];
 	}
 
 	constructor(vm, program) {
-		this.vm = vm;
+		const runtime = new Runtime();
 
 		for (const name in vm.InstrucionSet) {
 			const CustomInstruction = vm.InstrucionSet[name];
 
-			this.runtime.instructions[name] = (...args) => {
+			runtime.instructions[name] = (...args) => {
 				const instruction = new CustomInstruction(this, ...args);
 
 				return instruction.token;
 			};
 		}
 
-		const { CallInstruction } = this.vm;
+		const { main, ...functions } = program;
 
-		for (const name in program) {
-			const fn = program[name];
+		for (const name in functions) {
+			const fn = functions[name];
 
-			this.runtime[name] = (...args) => {
-				const routine = fn.call(this.runtime, ...args);
+			runtime[name] = (...args) => {
+				const routine = fn.call(runtime, ...args);
 
-				return new CallInstruction(this, routine).token;
+				return new vm.CallInstruction(this, routine).token;
 			};
 		}
 
-		this.bottomFrame = new Frame();
-		this.stack.unshift(this.bottomFrame);
+		let called = false;
+
+		this.run = async (extern) => {
+			if (called) {
+				throw 1;
+			}
+
+			called = true;
+
+			const routine = main.call(runtime, ...extern.args);
+
+			new vm.CallInstruction(this, routine).execute();
+		};
 	}
 
-	async execute(extern) {
-		await Instruction.getByToken(this.runtime.main)(...extern.args);
-	}
+	proxy = new ProcessProxy(this);
 }

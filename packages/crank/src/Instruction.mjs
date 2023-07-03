@@ -1,21 +1,16 @@
 import { Frame } from './Frame.mjs';
-
 import { RuntimeError } from './Utils.mjs';
 
 /** @type {WeakMap<symbol, Instruction>} */
 const CACHE = new WeakMap();
 
-export const getByToken = token => CACHE.get(token);
-
 export class Instruction {
 	process = null;
-	frame = null;
 	args = [];
 	token = Object.freeze({ token: true });
 
-	constructor(process, frame, ...args) {
+	constructor(process, ...args) {
 		this.process = process;
-		this.frame = frame;
 		this.args = args;
 
 		CACHE.set(this.token, this);
@@ -47,7 +42,7 @@ export class CallInstruction extends Instruction {
 				break;
 			}
 
-			const instruction = getByToken(value);
+			const instruction = CACHE.get(value);
 
 			if (instruction !== frame.currentInstruction) {
 				RuntimeError('not current ins.');
@@ -88,11 +83,11 @@ export class CallInstruction extends Instruction {
 		return nextFrame.ret;
 	}
 
-	_invoke(next) {
+	async _invoke(next) {
 		next();
 	}
 
-	_abort() {
+	async _abort() {
 		return false;
 	}
 }
