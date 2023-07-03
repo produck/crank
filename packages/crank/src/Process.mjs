@@ -1,51 +1,49 @@
-/*
-引擎多进程实现
-允许二级用户投入async generator function使用
-允许指令execute使用async function
-允许用户结束单个进程
- */
 import * as Instruction from './Instruction.mjs';
-
 import { Frame } from './Frame.mjs';
 
-/**@type {WeakMap<import('./Program.mjs').Program, Engine>} */
-const BINDING = new WeakMap();
-
-export const getByProgram = program => BINDING.get(program);
+class Runtime {
+	instructions = {};
+}
 
 export class Process {
 	vm = null;
 	stack = [];
-	instructions = {};
+	runtime = new Runtime();
 
 	get top() {
 		return this.stack[0];
 	}
 
-	constructor(vm) {
+	constructor(vm, program) {
 		this.vm = vm;
 
 		for (const name in vm.InstrucionSet) {
 			const CustomInstruction = vm.InstrucionSet[name];
-			const proxy = (...args) => new CustomInstruction(this, this.top, ...args).token;
 
-			this.instructions[name] = proxy;
+			this.runtime.instructions[name] = (...args) => {
+				const instruction = new CustomInstruction(this, ...args);
+
+				return instruction.token;
+			};
+		}
+
+		const { CallInstruction } = this.vm;
+
+		for (const name in program) {
+			const fn = program[name];
+
+			this.runtime[name] = (...args) => {
+				const routine = fn.call(this.runtime, ...args);
+
+				return new CallInstruction(this, routine).token;
+			};
 		}
 
 		this.bottomFrame = new Frame();
 		this.stack.unshift(this.bottomFrame);
 	}
 
-	call(routine) {
-		return new this.vm.CallInstruction(this, this.top, routine).token;
-	}
-
-	execute(program, extern) {
-		BINDING.set(program, this);
-
-		const mainToken = program.main(...extern.args);
-		Instruction.getByToken(mainToken).execute();
-
-		BINDING.delete(program);
+	async execute(extern) {
+		await Instruction.getByToken(this.runtime.main)(...extern.args);
 	}
 }

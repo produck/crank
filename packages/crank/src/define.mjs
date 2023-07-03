@@ -11,8 +11,21 @@ export function defineEngine(...args) {
 	const executors =	Options.normalizeExecutors(...args.slice(1, 2));
 
 	class CustomCallInstruction extends CallInstruction {
-		_invoke(...args) {
-			options.call(...args); // 传Context
+		async _abort() {
+			const processProxy = new ProcessProxy(this.process);
+			const flag = await options.abort(processProxy);
+
+			if (typeof flag !== 'boolean') {
+				Utils.TypeError('flag <= options.abort()', 'boolean or Promise<boolean>');
+			}
+
+			return flag;
+		}
+
+		async _invoke(...args) {
+			const processProxy = new ProcessProxy(this.process);
+
+			await options.call(processProxy, ...args); // 传Context
 		}
 	}
 
@@ -31,7 +44,9 @@ export function defineEngine(...args) {
 				this.InstrucionSet[name] = {
 					[INSTRUCTION_NAME]: class extends Instruction {
 						_execute() {
-							executor(...this.args); // 传Context
+							const processProxy = new ProcessProxy(this.process);
+
+							executor(processProxy);
 						}
 					},
 				}[INSTRUCTION_NAME];
@@ -46,7 +61,7 @@ export function defineEngine(...args) {
 	return { [PROXY_NAME]: class {
 		#engine = new CustomEngine();
 
-		execute(program, extern) {
+		async execute(program, extern) {
 			if (!Utils.Instance(program, Program)) {
 				Utils.TypeError('program', 'Program');
 			}
@@ -55,7 +70,7 @@ export function defineEngine(...args) {
 				Utils.TypeError('extern', 'CustomExtern');
 			}
 
-			return this.#engine.execute(program, extern);
+			await this.#engine.execute(program, extern);
 		}
 
 		static compile(script) {

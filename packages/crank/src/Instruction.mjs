@@ -22,21 +22,21 @@ export class Instruction {
 		this.process.top.currentInstruction = this;
 	}
 
-	execute() {
-		this._execute();
+	async execute() {
+		await this._execute();
 	}
 
-	_execute() {
+	async _execute() {
 		RuntimeError(1);
 	}
 }
 
 export class CallInstruction extends Instruction {
-	begin(frame) {
+	async begin(frame) {
 		const [routine] = this.args;
 		let nextValue, thrown = false;
 
-		while (true) { // 允许提前退出功能
+		while (!await this._abort()) {
 			const { value, done } = thrown
 				? routine.throw(nextValue)
 				: routine.next(nextValue);
@@ -55,7 +55,7 @@ export class CallInstruction extends Instruction {
 
 			try {
 				thrown = false;
-				nextValue = instruction.execute();
+				nextValue = await instruction.execute();
 			} catch (error) {
 				thrown = true;
 				nextValue = error;
@@ -63,20 +63,20 @@ export class CallInstruction extends Instruction {
 		}
 	}
 
-	_execute() {
+	async _execute() {
 		const nextFrame = new Frame();
 
 		this.process.stack.unshift(nextFrame);
 
 		let called = false;
 
-		this._invoke(this.frame, nextFrame, () => {
+		await this._invoke(async () => {
 			if (called) {
 				RuntimeError(2);
 			}
 
 			called = true;
-			this.begin(nextFrame);
+			await this.begin(nextFrame);
 		});
 
 		if (!called) {
@@ -88,8 +88,12 @@ export class CallInstruction extends Instruction {
 		return nextFrame.ret;
 	}
 
-	_invoke(_frame, _nextFrame, next) {
+	_invoke(next) {
 		next();
+	}
+
+	_abort() {
+		return false;
 	}
 }
 
