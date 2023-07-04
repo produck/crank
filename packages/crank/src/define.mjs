@@ -1,5 +1,4 @@
 import * as Engine from './Engine.mjs';
-import * as Process from './Process.mjs';
 import * as Instruction from './Instruction.mjs';
 import * as Utils from './Utils.mjs';
 import * as Options from './Options.mjs';
@@ -10,8 +9,7 @@ export function defineEngine(...args) {
 
 	class CustomCallInstruction extends Instruction.Call {
 		async _abort() {
-			const processProxy = new Process.Proxy(this.process);
-			const flag = await options.abort(processProxy);
+			const flag = await options.abort(this.process.proxy);
 
 			if (typeof flag !== 'boolean') {
 				Utils.TypeError('flag <= options.abort()', 'boolean or Promise<boolean>');
@@ -20,10 +18,8 @@ export function defineEngine(...args) {
 			return flag;
 		}
 
-		async _invoke(...args) {
-			const processProxy = new Process.Proxy(this.process);
-
-			await options.call(...args, processProxy);
+		async _invoke(nextFrame, next) {
+			await options.call(this.process.proxy, nextFrame.proxy, next);
 		}
 	}
 
@@ -42,9 +38,7 @@ export function defineEngine(...args) {
 				this.InstrucionSet[name] = {
 					[INSTRUCTION_NAME]: class extends Instruction.Base {
 						_execute() {
-							const processProxy = new Process.Proxy(this.process);
-
-							return executor(processProxy);
+							return executor(this.process.proxy);
 						}
 					},
 				}[INSTRUCTION_NAME];

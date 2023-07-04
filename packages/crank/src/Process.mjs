@@ -1,4 +1,5 @@
 import { Frame } from './Frame.mjs';
+import * as Utils from './Utils.mjs';
 
 class Runtime {
 }
@@ -7,9 +8,9 @@ const RUNTIME_PROXY_HANDLER = {
 	get(target, property) {
 		if (!target[property]) {
 			if (property[0] === '_') {
-				throw 'no ins';
+				Utils.RuntimeError('no ins');
 			} else {
-				throw 'no sub program';
+				Utils.RuntimeError('no sub program');
 			}
 		}
 
@@ -20,6 +21,11 @@ const RUNTIME_PROXY_HANDLER = {
 export class ProcessProxy {
 	#process;
 
+	get top() {
+		return this.#process.top.proxy;
+	}
+
+	/** @param {Process} process */
 	constructor(process) {
 		this.#process = process;
 	}
@@ -64,7 +70,7 @@ export class Process {
 
 		this.run = async (extern) => {
 			if (called) {
-				throw 1;
+				Utils.RuntimeError();
 			}
 
 			called = true;

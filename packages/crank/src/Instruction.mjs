@@ -1,14 +1,15 @@
 import { Frame } from './Frame.mjs';
-import { RuntimeError } from './Utils.mjs';
+import * as Utils from './Utils.mjs';
 
-/** @type {WeakMap<symbol, Instruction>} */
+/** @type {WeakMap<object, Instruction>} */
 const CACHE = new WeakMap();
 
 export class Instruction {
-	process = null;
+	process;
 	args = [];
 	token = Object.freeze({ token: true });
 
+	/** @param {import('./Process.mjs').Process} process */
 	constructor(process, ...args) {
 		this.process = process;
 		this.args = args;
@@ -22,7 +23,7 @@ export class Instruction {
 	}
 
 	async _execute() {
-		RuntimeError(1);
+		Utils.RuntimeError(1);
 	}
 }
 
@@ -45,7 +46,7 @@ export class CallInstruction extends Instruction {
 			const instruction = CACHE.get(value);
 
 			if (instruction !== frame.currentInstruction) {
-				RuntimeError('not current ins.');
+				Utils.RuntimeError('not current ins.');
 			}
 
 			try {
@@ -65,9 +66,9 @@ export class CallInstruction extends Instruction {
 
 		let called = false;
 
-		await this._invoke(this.process.top, nextFrame, async () => {
+		await this._invoke(nextFrame, async () => {
 			if (called) {
-				RuntimeError(2);
+				Utils.RuntimeError(2);
 			}
 
 			called = true;
@@ -75,7 +76,7 @@ export class CallInstruction extends Instruction {
 		});
 
 		if (!called) {
-			RuntimeError(3);
+			Utils.RuntimeError(3);
 		}
 
 		this.process.stack.shift();
@@ -83,7 +84,7 @@ export class CallInstruction extends Instruction {
 		return nextFrame.ret;
 	}
 
-	async _invoke(frame, _nextFrame, next) {
+	async _invoke(_nextFrame, next) {
 		next();
 	}
 
