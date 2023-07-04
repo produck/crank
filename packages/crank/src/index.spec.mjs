@@ -1,5 +1,4 @@
 import * as Crank from './index.mjs';
-import { Program } from './Program.mjs';
 import { Extern } from './Extern.mjs';
 import { describe, it } from 'mocha';
 import * as assert from 'node:assert/strict';
@@ -34,8 +33,8 @@ describe('::defineEngine()', function () {
 	describe('>CustomEngineProxy', function () {
 		it('should create a custom engine proxxy', function () {
 			const CustomEngineProxy = Crank.defineEngine({}, {
-				a: async () => {
-					return await sleep();
+				a: () => {
+					return sleep();
 				},
 			});
 
@@ -44,56 +43,30 @@ describe('::defineEngine()', function () {
 
 		describe('.execute()', function () {
 			it.only('should execute a program', async function () {
-				let flag = false;
-
 				const CustomEngineProxy = Crank.defineEngine({}, {
 					a: async () => {
-						flag = true;
-
-						return await sleep();
+						return 'pass';
 					},
 				});
 
 				const vm = new CustomEngineProxy();
 
-				const process = await vm.execute(new Program({
+				const ret = await vm.execute({
 					*SAT() {
-						yield this.$.a();
+						return yield this._a();
 					},
 					*main() {
-						yield this.SAT();
+						return yield this.SAT();
 					},
-				}), new Extern());
+				}, new Extern());
 
-				assert.equal(flag, true);
+				assert.equal(ret, 'pass');
 			});
 
 			it('should throw if bad program', function () {
 			});
 
 			it('should throw if bad extern', function () {
-			});
-		});
-
-		describe('::compile()', function () {
-			it('should return a program', function () {
-				const CustomEngineProxy = Crank.defineEngine({}, { a: async () => {
-					return await Promise.resolve('resolved');
-				} });
-				const program = CustomEngineProxy.compile({
-					*main () {},
-				});
-
-				assert.equal(program.constructor, Program);
-			});
-
-			it('should throw with bad script', function () {
-			});
-
-			it('should throw with bad item of script', function () {
-			});
-
-			it('should throw with bad script without main', function () {
 			});
 		});
 	});

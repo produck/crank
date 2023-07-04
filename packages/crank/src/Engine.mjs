@@ -8,9 +8,7 @@ export class Engine {
 	async execute(program, extern) {
 		const process = new Process(this, program);
 
-		await process.run(extern);
-
-		return process.top.ret;
+		return await process.run(extern);
 	}
 }
 

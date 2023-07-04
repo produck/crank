@@ -1,7 +1,7 @@
 import { Extern } from './Extern.mjs';
 import { S, P, Cust, Normalizer, PROPERTY, U } from '@produck/mold';
 
-const DEFAULT_CALL = (ctx, next) => next();
+const DEFAULT_CALL = (_s, _sc, next) => next();
 
 const OptionsSchema = Cust(S.Object({
 	name: P.String('Crank'),
@@ -33,4 +33,4 @@ const ScriptSchema = S.Object({
 	[PROPERTY]: P.Instance(GeneratorFunction),
 });
 
-export const normalizeScript = Normalizer(ScriptSchema);
+export const normalizeProgram = Normalizer(ScriptSchema);

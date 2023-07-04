@@ -12,6 +12,7 @@
     "import": "./src/index.mjs",
     "require": "./src/index.cjs"
   },
+	"types": "src/index.d.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/produck/crank"
@@ -24,7 +25,7 @@
     "rollup": "^3.25.2"
   },
   "scripts": {
-    "test": "mocha src/index.spec.mjs"
+    "test": "mocha src/index.spec.mjs -t 99999999"
   },
   "dependencies": {
     "@produck/mold": "^0.3.1"

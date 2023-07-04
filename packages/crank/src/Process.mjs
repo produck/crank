@@ -1,10 +1,23 @@
 import { Frame } from './Frame.mjs';
 
 class Runtime {
-	instructions = {};
 }
 
-class ProcessProxy {
+const RUNTIME_PROXY_HANDLER = {
+	get(target, property) {
+		if (!target[property]) {
+			if (property[0] === '_') {
+				throw 'no ins';
+			} else {
+				throw 'no sub program';
+			}
+		}
+
+		return target[property];
+	},
+};
+
+export class ProcessProxy {
 	#process;
 
 	constructor(process) {
@@ -21,11 +34,12 @@ export class Process {
 
 	constructor(vm, program) {
 		const runtime = new Runtime();
+		const runtimeProxy = new Proxy(runtime, RUNTIME_PROXY_HANDLER);
 
 		for (const name in vm.InstrucionSet) {
 			const CustomInstruction = vm.InstrucionSet[name];
 
-			runtime.instructions[name] = (...args) => {
+			runtime[`_${name}`] = (...args) => {
 				const instruction = new CustomInstruction(this, ...args);
 
 				return instruction.token;
@@ -38,11 +52,13 @@ export class Process {
 			const fn = functions[name];
 
 			runtime[name] = (...args) => {
-				const routine = fn.call(runtime, ...args);
+				const routine = fn.call(runtimeProxy, ...args);
 
 				return new vm.CallInstruction(this, routine).token;
 			};
 		}
+
+		Object.freeze(runtime);
 
 		let called = false;
 
@@ -53,11 +69,15 @@ export class Process {
 
 			called = true;
 
-			const routine = main.call(runtime, ...extern.args);
+			const routine = main.call(runtimeProxy, ...extern.args);
 
-			new vm.CallInstruction(this, routine).execute();
+			return await new vm.CallInstruction(this, routine).execute();
 		};
 	}
 
 	proxy = new ProcessProxy(this);
 }
+
+export {
+	ProcessProxy as Proxy,
+};

@@ -18,7 +18,7 @@ export class Instruction {
 	}
 
 	async execute() {
-		await this._execute();
+		return await this._execute();
 	}
 
 	async _execute() {
@@ -65,7 +65,7 @@ export class CallInstruction extends Instruction {
 
 		let called = false;
 
-		await this._invoke(async () => {
+		await this._invoke(this.process.top, nextFrame, async () => {
 			if (called) {
 				RuntimeError(2);
 			}
@@ -83,7 +83,7 @@ export class CallInstruction extends Instruction {
 		return nextFrame.ret;
 	}
 
-	async _invoke(next) {
+	async _invoke(frame, _nextFrame, next) {
 		next();
 	}
 
@@ -92,4 +92,7 @@ export class CallInstruction extends Instruction {
 	}
 }
 
-export { CallInstruction as Call };
+export {
+	Instruction as Base,
+	CallInstruction as Call,
+};

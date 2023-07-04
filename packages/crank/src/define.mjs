@@ -1,8 +1,6 @@
 import * as Engine from './Engine.mjs';
-import { CallInstruction, Instruction } from './Instruction.mjs';
-import { Program } from './Program.mjs';
-import { ProcessProxy } from './Context.mjs';
-
+import * as Process from './Process.mjs';
+import * as Instruction from './Instruction.mjs';
 import * as Utils from './Utils.mjs';
 import * as Options from './Options.mjs';
 
@@ -10,9 +8,9 @@ export function defineEngine(...args) {
 	const options = Options.normalizeOptions(...args.slice(0, 1));
 	const executors =	Options.normalizeExecutors(...args.slice(1, 2));
 
-	class CustomCallInstruction extends CallInstruction {
+	class CustomCallInstruction extends Instruction.Call {
 		async _abort() {
-			const processProxy = new ProcessProxy(this.process);
+			const processProxy = new Process.Proxy(this.process);
 			const flag = await options.abort(processProxy);
 
 			if (typeof flag !== 'boolean') {
@@ -23,9 +21,9 @@ export function defineEngine(...args) {
 		}
 
 		async _invoke(...args) {
-			const processProxy = new ProcessProxy(this.process);
+			const processProxy = new Process.Proxy(this.process);
 
-			await options.call(processProxy, ...args); // 传Context
+			await options.call(...args, processProxy);
 		}
 	}
 
@@ -42,11 +40,11 @@ export function defineEngine(...args) {
 				const executor = executors[name];
 
 				this.InstrucionSet[name] = {
-					[INSTRUCTION_NAME]: class extends Instruction {
+					[INSTRUCTION_NAME]: class extends Instruction.Base {
 						_execute() {
-							const processProxy = new ProcessProxy(this.process);
+							const processProxy = new Process.Proxy(this.process);
 
-							executor(processProxy);
+							return executor(processProxy);
 						}
 					},
 				}[INSTRUCTION_NAME];
@@ -62,19 +60,13 @@ export function defineEngine(...args) {
 		#engine = new CustomEngine();
 
 		async execute(program, extern) {
-			if (!Utils.Instance(program, Program)) {
-				Utils.TypeError('program', 'Program');
-			}
+			Options.normalizeProgram(program);
 
 			if (!Utils.Instance(extern, options.Extern)) {
 				Utils.TypeError('extern', 'CustomExtern');
 			}
 
-			await this.#engine.execute(program, extern);
-		}
-
-		static compile(script) {
-			return new Program(script);
+			return await this.#engine.execute(program, extern);
 		}
 	} }[PROXY_NAME];
 }
