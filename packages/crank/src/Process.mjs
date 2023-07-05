@@ -8,9 +8,9 @@ const RUNTIME_PROXY_HANDLER = {
 	get(target, property) {
 		if (!target[property]) {
 			if (property[0] === '_') {
-				Utils.RuntimeError('no instruction');
+				Utils.RuntimeError('No instruction.');
 			} else {
-				Utils.RuntimeError('no sub program');
+				Utils.RuntimeError('No function of program.');
 			}
 		}
 
@@ -18,7 +18,7 @@ const RUNTIME_PROXY_HANDLER = {
 	},
 };
 
-export class ProcessProxy {
+class ProcessProxy {
 	#process;
 
 	get top() {
@@ -66,15 +66,7 @@ export class Process {
 
 		Object.freeze(runtime);
 
-		let called = false;
-
 		this.run = async (extern) => {
-			if (called) {
-				Utils.RuntimeError('has been called', 'process.run');
-			}
-
-			called = true;
-
 			const routine = main.call(runtimeProxy, ...extern.args);
 
 			return await new vm.CallInstruction(this, routine).execute();
@@ -83,7 +75,3 @@ export class Process {
 
 	proxy = new ProcessProxy(this);
 }
-
-export {
-	ProcessProxy as Proxy,
-};
