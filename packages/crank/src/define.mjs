@@ -53,6 +53,10 @@ export function defineEngine(...args) {
 	return { [PROXY_NAME]: class {
 		#engine = new CustomEngine();
 
+		static get Extern() {
+			return options.Extern;
+		}
+
 		async execute(program, extern) {
 			Options.normalizeProgram(program);
 

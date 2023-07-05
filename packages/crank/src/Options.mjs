@@ -10,9 +10,12 @@ const OptionsSchema = Cust(S.Object({
 	abort: P.Function(() => false),
 }), (_value, _empty, next) => {
 	const options = next();
+	const { Extern: _Extern } = options;
+	const isExtern = _Extern === Extern;
+	const isCustomExtern = Object.prototype.isPrototypeOf.call(Extern, _Extern);
 
-	if (options.Extern !== Extern && !Object.prototype.isPrototypeOf.call(Extern, options.Extern)) {
-		U.throwError('.Extern', 'sub class of Extern');
+	if (!isExtern && !isCustomExtern) {
+		U.throwError('.Extern', 'CustomExtern or Extern');
 	}
 
 	return options;

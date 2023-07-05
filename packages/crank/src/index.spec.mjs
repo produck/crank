@@ -3,13 +3,39 @@ import { describe, it } from 'mocha';
 
 import * as Crank from './index.mjs';
 import { Extern } from './Extern.mjs';
-import * as Utils from './Utils.mjs';
 
 describe('::defineEngine()', function () {
-	it('should create a custom engine class by default', function () {
-		const CrankEngineProxy = Crank.defineEngine();
+	it('should create a CustomEngineProxy class by default.', function () {
+		const CrankEngineProxy = Crank.defineEngine({});
 
 		assert.equal(CrankEngineProxy.name, 'CrankEngineProxy');
+	});
+
+	it('should throw if bad options.Extern.', function () {
+		assert.throws(() => {
+			Crank.defineEngine({
+				Extern() {},
+			});
+		}, {
+			name: 'TypeError',
+			message: /Invalid ".Extern", one "CustomExtern or Extern" expected./,
+		});
+	});
+
+	it('should throw if bad options.abort.', async function () {
+		await assert.rejects(async () => {
+			const CustomEngineProxy = Crank.defineEngine({
+				abort() {},
+			});
+			const vm = new CustomEngineProxy();
+
+			await vm.execute({
+				*main() {},
+			}, new Extern());
+		}, {
+			name: 'TypeError',
+			message: 'Invalid "flag <= options.abort()", one "boolean or Promise<boolean>" expected.',
+		});
 	});
 
 	describe('>CustomEngineProxy', function () {
@@ -42,7 +68,13 @@ describe('::defineEngine()', function () {
 			});
 
 			it('should throw if bad extern', async function () {
-				const CustomEngineProxy = Crank.defineEngine();
+				class CustomExtern extends Extern {
+					name = 'custom extern class';
+				}
+
+				const CustomEngineProxy = Crank.defineEngine({
+					Extern: CustomExtern,
+				});
 				const vm = new CustomEngineProxy();
 
 				await assert.rejects(async () => {
@@ -50,11 +82,40 @@ describe('::defineEngine()', function () {
 						*main() {
 							return yield 1;
 						},
-					}, {});
+					}, new Extern());
 				}, {
 					name: 'TypeError',
 					message: 'Invalid "extern", one "CustomExtern" expected.',
 				});
+			});
+		});
+
+		describe('.Extern', function () {
+			it('should get options.Extern', function () {
+				class CustomExtern extends Extern {
+					name = 'custom';
+				}
+
+				const CustomEngineProxy = Crank.defineEngine({
+					Extern: CustomExtern,
+				}, {
+					a: async function () {
+						return await Promise.resolve(1);
+					},
+				});
+
+				const program = {
+					*step() {},
+					*main() {
+						return yield this.step();
+					},
+				};
+
+				const CustomExternProvided = CustomEngineProxy.Extern;
+
+				new CustomEngineProxy().execute(program, new CustomExternProvided());
+
+				assert.equal(CustomExtern, CustomExternProvided);
 			});
 		});
 	});
@@ -63,13 +124,16 @@ describe('::defineEngine()', function () {
 describe('::Extern', function () {
 	it('should create a extern by default', function () {
 		const extern = new Extern();
+
+		assert.deepEqual(extern.args, []);
 	});
 
 	describe('.setArgs()', function () {
 		it('should set extern.args by args', function () {
 			const extern = new Extern();
 
-			extern.setArgs(1);
+			extern.setArgs(1, 2);
+			assert.deepEqual(extern.args, [1, 2]);
 		});
 	});
 });

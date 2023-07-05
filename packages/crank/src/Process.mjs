@@ -8,7 +8,7 @@ const RUNTIME_PROXY_HANDLER = {
 	get(target, property) {
 		if (!target[property]) {
 			if (property[0] === '_') {
-				Utils.RuntimeError('no ins');
+				Utils.RuntimeError('no instruction');
 			} else {
 				Utils.RuntimeError('no sub program');
 			}
@@ -70,7 +70,7 @@ export class Process {
 
 		this.run = async (extern) => {
 			if (called) {
-				Utils.RuntimeError();
+				Utils.RuntimeError('has been called', 'process.run');
 			}
 
 			called = true;

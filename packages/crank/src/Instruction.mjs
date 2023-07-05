@@ -23,7 +23,7 @@ export class Instruction {
 	}
 
 	async _execute() {
-		Utils.RuntimeError(1);
+		Utils.RuntimeError('not be realized', '._execute');
 	}
 }
 
@@ -46,7 +46,7 @@ export class CallInstruction extends Instruction {
 			const instruction = CACHE.get(value);
 
 			if (instruction !== frame.currentInstruction) {
-				Utils.RuntimeError('not current ins.');
+				Utils.RuntimeError('not current instruction', '.execute');
 			}
 
 			try {
@@ -68,7 +68,7 @@ export class CallInstruction extends Instruction {
 
 		await this._invoke(nextFrame, async () => {
 			if (called) {
-				Utils.RuntimeError(2);
+				Utils.RuntimeError('has been called', 'options.call');
 			}
 
 			called = true;
@@ -76,7 +76,7 @@ export class CallInstruction extends Instruction {
 		});
 
 		if (!called) {
-			Utils.RuntimeError(3);
+			Utils.RuntimeError('not been called', 'options.call');
 		}
 
 		this.process.stack.shift();
