@@ -6,11 +6,10 @@
   "keywords": [],
   "author": "Leoword <leoword@qq.com>",
   "homepage": "https://github.com/produck/crank#readme",
-  "main": "index.cjs",
+  "main": "index.mjs",
   "type": "module",
   "exports": {
-    "import": "./src/index.mjs",
-    "require": "./src/index.cjs"
+    "import": "./src/index.mjs"
   },
 	"types": "src/index.d.ts",
   "repository": {
