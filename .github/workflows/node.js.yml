@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
   push:
     tags:
-      - '@produck/mold@**'
+      - '@produck/crank@**'
 
 jobs:
   build:
