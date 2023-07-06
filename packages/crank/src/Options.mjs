@@ -1,5 +1,5 @@
 import { Extern } from './Extern.mjs';
-import { S, P, Cust, Normalizer, PROPERTY, U } from '@produck/mold';
+import { S, P, Cust, Normalizer, PROPERTY, U, C } from '@produck/mold';
 
 const DEFAULT_CALL = (_s, _sc, next) => next();
 
@@ -30,10 +30,16 @@ const ExecutorsSchema = S.Object({
 export const normalizeExecutors = Normalizer(ExecutorsSchema);
 
 const GeneratorFunction = (function* () {}).constructor;
+const AsyncGeneratorFunction = (async function* () {}).constructor;
+
+const GeneratorLikeSchema = C.Or([
+	P.Instance(GeneratorFunction),
+	P.Instance(AsyncGeneratorFunction),
+]);
 
 const ScriptSchema = S.Object({
-	main: P.Instance(GeneratorFunction),
-	[PROPERTY]: P.Instance(GeneratorFunction),
+	main: GeneratorLikeSchema,
+	[PROPERTY]: GeneratorLikeSchema,
 });
 
 export const normalizeProgram = Normalizer(ScriptSchema);

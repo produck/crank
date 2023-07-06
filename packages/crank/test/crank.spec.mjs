@@ -2,7 +2,6 @@ import * as assert from 'node:assert/strict';
 import { describe, it } from 'mocha';
 
 import * as Crank from '../src/index.mjs';
-import { Extern } from '../src/Extern.mjs';
 import * as Instruction from '../src/Instruction.mjs';
 
 describe('::defineEngine()', function () {
@@ -32,7 +31,7 @@ describe('::defineEngine()', function () {
 
 			await vm.execute({
 				*main() {},
-			}, new Extern());
+			}, new Crank.Extern());
 		}, {
 			name: 'TypeError',
 			message: 'Invalid "flag <= options.abort()", one "boolean or Promise<boolean>" expected.',
@@ -51,7 +50,7 @@ describe('::defineEngine()', function () {
 
 			await vm.execute({
 				*main() {},
-			}, new Extern());
+			}, new Crank.Extern());
 		}, {
 			name: 'Error',
 			message: 'Multiple calling in options.call.',
@@ -68,7 +67,7 @@ describe('::defineEngine()', function () {
 
 			await vm.execute({
 				*main() {},
-			}, new Extern());
+			}, new Crank.Extern());
 		}, {
 			name: 'Error',
 			message: 'No calling in options.call.',
@@ -99,13 +98,76 @@ describe('::defineEngine()', function () {
 					*main() {
 						return yield this.SAT();
 					},
-				}, new Extern());
+				}, new Crank.Extern());
 
 				assert.equal(ret, 'pass');
 			});
 
+			it('should calling instruction.execute in instruction.', async function () {
+				const CustomEngineProxy = Crank.defineEngine({}, {
+					b: () => {
+						return Promise.resolve(1);
+					},
+					a: async (proxy, ...args) => {
+						const ret = [];
+
+						for (const item of args) {
+							if (Crank.isToken(item)) {
+								const val = await item.execute();
+
+								ret.push(val);
+							} else {
+								ret.push(item);
+							}
+						}
+
+						return ret;
+					},
+				});
+
+				const vm = new CustomEngineProxy();
+
+				const ret = await vm.execute({
+					async *SAT() {
+						return yield this._b();
+					},
+					async *main() {
+						return yield this._a(this._b(), this._b());
+					},
+				}, new Crank.Extern());
+
+				assert.deepEqual(ret, [
+					1, 1,
+				]);
+			});
+
+			it('should throw if calling instruction.execute in program', async function () {
+				const CustomEngineProxy = Crank.defineEngine({}, {
+					b: () => {
+						return Promise.resolve(1);
+					},
+				});
+
+				const vm = new CustomEngineProxy();
+
+				await assert.rejects(async () => {
+					await vm.execute({
+						async *SAT() {
+							return yield this._b();
+						},
+						async *main() {
+							await this._b().execute();
+							return yield this._b();
+						},
+					}, new Crank.Extern());
+				}, {
+					name: 'Error',
+					message: 'Instruction can\'t execute.',
+				});
+			});
+
 			it('should throw if bad extern.', async function () {
-				class CustomExtern extends Extern {
+				class CustomExtern extends Crank.Extern {
 					name = 'custom extern class';
 				}
 
@@ -119,7 +181,7 @@ describe('::defineEngine()', function () {
 						*main() {
 							return yield 1;
 						},
-					}, new Extern());
+					}, new Crank.Extern());
 				}, {
 					name: 'TypeError',
 					message: 'Invalid "extern", one "CustomExtern" expected.',
@@ -139,7 +201,7 @@ describe('::defineEngine()', function () {
 						*main() {
 							return yield this.SAT();
 						},
-					}, new Extern());
+					}, new Crank.Extern());
 				}, {
 					name: 'Error',
 					message: 'No instruction.',
@@ -156,7 +218,7 @@ describe('::defineEngine()', function () {
 						*main() {
 							return yield this.SAT();
 						},
-					}, new Extern());
+					}, new Crank.Extern());
 				}, {
 					name: 'Error',
 					message: 'No function of program.',
@@ -186,7 +248,7 @@ describe('::defineEngine()', function () {
 
 							return yield token;
 						},
-					}, new Extern());
+					}, new Crank.Extern());
 				}, {
 					name: 'Error',
 					message: 'Calling is\'t current instruction.',
@@ -218,7 +280,7 @@ describe('::defineEngine()', function () {
 					*main() {
 						return yield this.SAT();
 					},
-				}, new Extern());
+				}, new Crank.Extern());
 
 				assert.equal(ret, 'change return value');
 			});
@@ -226,7 +288,7 @@ describe('::defineEngine()', function () {
 
 		describe('.Extern', function () {
 			it('should get options.Extern.', function () {
-				class CustomExtern extends Extern {
+				class CustomExtern extends Crank.Extern {
 					name = 'custom';
 				}
 
@@ -257,14 +319,14 @@ describe('::defineEngine()', function () {
 
 describe('::Extern', function () {
 	it('should create a extern by default.', function () {
-		const extern = new Extern();
+		const extern = new Crank.Extern();
 
 		assert.deepEqual(extern.args, []);
 	});
 
 	describe('.setArgs()', function () {
 		it('should set extern.args by args.', function () {
-			const extern = new Extern();
+			const extern = new Crank.Extern();
 
 			extern.setArgs(1, 2);
 			assert.deepEqual(extern.args, [1, 2]);

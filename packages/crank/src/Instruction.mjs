@@ -1,13 +1,29 @@
 import { Frame } from './Frame.mjs';
 import * as Utils from './Utils.mjs';
 
-/** @type {WeakMap<object, Instruction>} */
+/** @type {WeakMap<Token, Instruction>} */
 const CACHE = new WeakMap();
+
+export class Token {
+	#instruction;
+
+	constructor(instruction) {
+		this.#instruction = instruction;
+	}
+
+	async execute() {
+		if (!this.#instruction.process.top.isKernal) {
+			Utils.RuntimeError('Instruction can\'t execute.');
+		}
+
+		return await this.#instruction.execute();
+	}
+}
 
 export class Instruction {
 	process;
 	args = [];
-	token = Object.freeze({ token: true });
+	token = new Token(this);
 
 	/** @param {import('./Process.mjs').Process} process */
 	constructor(process, ...args) {
@@ -33,9 +49,11 @@ export class CallInstruction extends Instruction {
 		let nextValue, thrown = false;
 
 		while (!await this._abort()) {
+			frame.isKernal = false;
+
 			const { value, done } = thrown
-				? routine.throw(nextValue)
-				: routine.next(nextValue);
+				? await routine.throw(nextValue)
+				: await routine.next(nextValue);
 
 			if (done) {
 				frame.ret = value;
@@ -48,6 +66,8 @@ export class CallInstruction extends Instruction {
 			if (instruction !== frame.currentInstruction) {
 				Utils.RuntimeError('Calling is\'t current instruction.');
 			}
+
+			frame.isKernal = true;
 
 			try {
 				thrown = false;

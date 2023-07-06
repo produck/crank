@@ -37,8 +37,8 @@ export function defineEngine(...args) {
 
 				this.InstrucionSet[name] = {
 					[INSTRUCTION_NAME]: class extends Instruction.Base {
-						_execute() {
-							return executor(this.process.proxy);
+						async _execute() {
+							return await executor(this.process.proxy, ...this.args);
 						}
 					},
 				}[INSTRUCTION_NAME];
