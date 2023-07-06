@@ -1,9 +1,9 @@
 import * as assert from 'node:assert/strict';
 import { describe, it } from 'mocha';
 
-import * as Crank from './index.mjs';
-import { Extern } from './Extern.mjs';
-import * as Instruction from './Instruction.mjs';
+import * as Crank from '../src/index.mjs';
+import { Extern } from '../src/Extern.mjs';
+import * as Instruction from '../src/Instruction.mjs';
 
 describe('::defineEngine()', function () {
 	it('should create a CustomEngineProxy class by default.', function () {

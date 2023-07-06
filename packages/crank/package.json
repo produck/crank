@@ -1,39 +1,42 @@
 {
-  "name": "@produck/crank",
-  "version": "0.1.0",
-  "description": "executor framework",
-  "license": "MIT",
-  "publishConfig": {
-    "access": "public"
-  },
-  "keywords": [],
-  "author": "Leoword <leoword@qq.com>",
-  "homepage": "https://github.com/produck/crank#readme",
-  "main": "index.mjs",
-  "type": "module",
-  "exports": {
-    "import": "./src/index.mjs"
-  },
-  "files": [
-    "src",
-    "tsconfig.json"
-  ],
-  "types": "src/index.d.ts",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/produck/crank"
-  },
-  "bugs": {
-    "url": "https://github.com/produck/crank/issues"
-  },
-  "devDependencies": {
-    "mocha": "^10.2.0",
-    "rollup": "^3.25.2"
-  },
-  "scripts": {
-    "test": "mocha src/index.spec.mjs -t 99999999"
-  },
-  "dependencies": {
-    "@produck/mold": "^0.3.1"
-  }
+	"name": "@produck/crank",
+	"version": "0.1.0",
+	"description": "executor framework",
+	"license": "MIT",
+	"publishConfig": {
+		"access": "public"
+	},
+	"keywords": [],
+	"author": "Leoword <leoword@qq.com>",
+	"homepage": "https://github.com/produck/crank#readme",
+	"main": "index.mjs",
+	"type": "module",
+	"exports": {
+		"import": "./src/index.mjs",
+		"require": "./src/index.gen.cjs"
+	},
+	"types": "src/index.d.ts",
+	"files": [
+		"src",
+		"tsconfig.json"
+	],
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/produck/crank"
+	},
+	"bugs": {
+		"url": "https://github.com/produck/crank/issues"
+	},
+	"devDependencies": {
+		"mocha": "^10.2.0",
+		"rollup": "^3.26.1"
+	},
+	"scripts": {
+		"test": "mocha test/** -t 99999999",
+		"build": "rollup -c script/rollup.config.mjs",
+		"prepublishOnly": "npm run build"
+	},
+	"dependencies": {
+		"@produck/mold": "^0.3.1"
+	}
 }
