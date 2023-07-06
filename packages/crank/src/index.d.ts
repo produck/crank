@@ -1,16 +1,38 @@
-interface Runtime {
-	[key: string]: () => InstructionToken;
-	[key: symbol]: never;
-	[key: number]: never;
+// type Fn = (...args: any[]) => any;
+type Fn = any;
+
+interface Program {
+	main: Fn;
+	[key: string]: Fn;
 }
 
 type InstructionToken = Readonly<{ token: true }>;
-type ProgramFunction = (this: Runtime) => Generator<InstructionToken, any>;
 
-interface Program {
-	main: ProgramFunction;
-	[key: string]: ProgramFunction;
+interface Executors {
+	[key: string]: (
+		this: undefined,
+		process: ProcessProxy,
+		...args: any[]
+	) => any;
 }
+
+type Runtime<
+	P extends Program,
+	E extends Executors,
+> = {
+	[k in Exclude<keyof P, 'main'>]: (
+		...args: Parameters<P[k]>
+	) => InstructionToken;
+} & {
+	[k in keyof E as `_${string & k}`]: (
+		...args: any[]
+	) => InstructionToken;
+}
+
+type ThisTypedProgram<
+	P extends Program,
+	E extends Executors,
+> = ThisType<Runtime<P, E>> & P;
 
 declare class ProcessProxy {
 	readonly top: FrameProxy;
@@ -25,7 +47,7 @@ export class Extern {
 	setArgs: (...args: any[]) => undefined;
 }
 
-declare class CustomExtern extends Extern {}
+declare class CustomExtern extends Extern { }
 
 type ChainNext = () => Promise<undefined>
 
@@ -36,14 +58,24 @@ interface Options {
 	abort?: (process: ProcessProxy) => boolean;
 }
 
-interface Executors {
-	[key: string]: (process: ProcessProxy) => any;
-}
-
-declare class EngineProxy {
+declare class EngineProxy<
+	E extends Executors
+> {
 	static readonly Extern: typeof CustomExtern;
-	execute(program: Program, extern: CustomExtern): Promise<any>;
+
+	execute<
+		P extends Program,
+	>(
+		program: ThisTypedProgram<P, E>,
+		extern?: CustomExtern
+	): Promise<any>;
 }
 
-export function defineEngine(options: Options, executors: Executors): typeof EngineProxy;
+export function defineEngine<
+	E extends Executors
+>(
+	options: Options,
+	executors: E & Executors
+): typeof EngineProxy<E>;
+
 export { defineEngine as Engine };
