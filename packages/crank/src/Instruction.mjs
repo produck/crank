@@ -7,13 +7,25 @@ const CACHE = new WeakMap();
 export class Token {
 	#instruction;
 
+	get done() {
+		return this.#instruction.done;
+	}
+
+	setDone() {
+		if (this.done) {
+			Utils.RuntimeError('Duplicated `.setDone()`.');
+		}
+
+		this.#instruction.done = true;
+	}
+
 	constructor(instruction) {
 		this.#instruction = instruction;
 	}
 
 	async execute() {
 		if (!this.#instruction.process.top.isKernal) {
-			Utils.RuntimeError('Instruction can\'t execute.');
+			Utils.RuntimeError('Instruction can NOT be `.execute()`.');
 		}
 
 		return await this.#instruction.execute();
@@ -24,6 +36,7 @@ export class Instruction {
 	process;
 	args = [];
 	token = new Token(this);
+	done = false;
 
 	/** @param {import('./Process.mjs').Process} process */
 	constructor(process, ...args) {
@@ -57,6 +70,7 @@ export class CallInstruction extends Instruction {
 
 			if (done) {
 				frame.ret = value;
+				this.done = true;
 
 				break;
 			}
