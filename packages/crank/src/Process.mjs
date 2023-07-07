@@ -25,6 +25,10 @@ class ProcessProxy {
 		return this.#process.top.proxy;
 	}
 
+	get extern() {
+		return this.#process.extern;
+	}
+
 	/** @param {Process} process */
 	constructor(process) {
 		this.#process = process;
@@ -33,12 +37,15 @@ class ProcessProxy {
 
 export class Process {
 	stack = [new Frame()];
+	extern;
 
 	get top() {
 		return this.stack[0];
 	}
 
-	constructor(vm, program) {
+	constructor(vm, program, extern) {
+		this.extern = extern;
+
 		const runtime = new Runtime();
 		const runtimeProxy = new Proxy(runtime, RUNTIME_PROXY_HANDLER);
 
@@ -66,8 +73,8 @@ export class Process {
 
 		Object.freeze(runtime);
 
-		this.run = async (extern) => {
-			const routine = main.call(runtimeProxy, ...extern.args);
+		this.run = async () => {
+			const routine = main.call(runtimeProxy, ...this.extern.args);
 
 			return await new vm.CallInstruction(this, routine).execute();
 		};

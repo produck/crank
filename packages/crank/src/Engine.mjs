@@ -6,9 +6,9 @@ export class Engine {
 	InstrucionSet = {};
 
 	async execute(program, extern) {
-		const process = new Process(this, program);
+		const process = new Process(this, program, extern);
 
-		return await process.run(extern);
+		return await process.run();
 	}
 }
 

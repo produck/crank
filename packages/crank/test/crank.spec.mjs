@@ -83,8 +83,11 @@ describe('::defineEngine()', function () {
 
 		describe('.execute()', function () {
 			it('should execute a program.', async function () {
+				const extern = new Crank.Extern();
+
 				const CustomEngineProxy = Crank.defineEngine({}, {
-					a: async () => {
+					a: async (process) => {
+						process.extern.ret = 'pass';
 						return 'pass';
 					},
 				});
@@ -98,9 +101,10 @@ describe('::defineEngine()', function () {
 					*main() {
 						return yield this.SAT();
 					},
-				}, new Crank.Extern());
+				}, extern);
 
 				assert.equal(ret, 'pass');
+				assert.equal(extern.ret, 'pass');
 			});
 
 			it('should calling instruction.execute in instruction.', async function () {

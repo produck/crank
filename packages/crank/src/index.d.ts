@@ -36,6 +36,7 @@ type ThisTypedProgram<
 
 declare class ProcessProxy {
 	readonly top: FrameProxy;
+	extern: CustomExtern;
 }
 
 declare class FrameProxy {

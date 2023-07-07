@@ -23,5 +23,7 @@
     "@produck/crank": "^0.1.1",
     "mocha": "^10.2.0"
   },
-  "scripts": {}
+  "scripts": {
+		"run": "node ./src/index.mjs"
+	}
 }
