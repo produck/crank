@@ -59,9 +59,9 @@ export class Instruction {
 export class CallInstruction extends Instruction {
 	async begin(frame) {
 		const [routine] = this.args;
-		let nextValue, thrown = false;
+		let nextValue, thrown = false, last = null;
 
-		while (!await this._abort()) {
+		do {
 			frame.isKernal = false;
 
 			const { value, done } = thrown
@@ -75,10 +75,11 @@ export class CallInstruction extends Instruction {
 				break;
 			}
 
-			const instruction = CACHE.get(value);
+			const token = value;
+			const instruction = CACHE.get(token);
 
 			if (instruction !== frame.currentInstruction) {
-				Utils.RuntimeError('Calling is\'t current instruction.');
+				Utils.RuntimeError('Calling is not current instruction.');
 			}
 
 			frame.isKernal = true;
@@ -90,7 +91,9 @@ export class CallInstruction extends Instruction {
 				thrown = true;
 				nextValue = error;
 			}
-		}
+
+			last = token;
+		} while (!await this._abort(last));
 	}
 
 	async _execute() {

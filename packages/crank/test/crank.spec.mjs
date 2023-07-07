@@ -26,11 +26,16 @@ describe('::defineEngine()', function () {
 		await assert.rejects(async () => {
 			const CustomEngineProxy = Crank.defineEngine({
 				abort() {},
+			}, {
+				b() {},
 			});
+
 			const vm = new CustomEngineProxy();
 
 			await vm.execute({
-				*main() {},
+				*main() {
+					yield this._b();
+				},
 			}, new Crank.Extern());
 		}, {
 			name: 'TypeError',
@@ -145,6 +150,92 @@ describe('::defineEngine()', function () {
 				]);
 			});
 
+			it('should calling instruction.setDone in instruction.', async function () {
+				const CustomEngineProxy = Crank.defineEngine({}, {
+					b: () => {
+						return Promise.resolve(1);
+					},
+					a: async (proxy, ...args) => {
+						const ret = [];
+
+						for (const item of args) {
+							if (Crank.isToken(item)) {
+								await item.execute();
+
+								if (!item.done) {
+									item.setDone();
+								}
+
+								ret.push(item.done);
+							} else {
+								ret.push(item);
+							}
+						}
+
+						return ret;
+					},
+				});
+
+				const vm = new CustomEngineProxy();
+
+				const ret = await vm.execute({
+					async *SAT() {
+						return yield this._b();
+					},
+					async *main() {
+						return yield this._a(this._b(), this._b());
+					},
+				}, new Crank.Extern());
+
+				assert.deepEqual(ret, [
+					true, true,
+				]);
+			});
+
+			it('should throw if duplicate calling instruction.setDone in instruction.', async function () {
+				const CustomEngineProxy = Crank.defineEngine({}, {
+					b: () => {
+						return Promise.resolve(1);
+					},
+					a: async (proxy, ...args) => {
+						const ret = [];
+
+						for (const item of args) {
+							if (Crank.isToken(item)) {
+								await item.execute();
+
+								if (!item.done) {
+									item.setDone();
+									item.setDone();
+								}
+
+								ret.push(item.done);
+							} else {
+								ret.push(item);
+							}
+						}
+
+						return ret;
+					},
+				});
+
+				const vm = new CustomEngineProxy();
+
+				assert.rejects(async () => {
+					await vm.execute({
+						async *SAT() {
+							return yield this._b();
+						},
+						async *main() {
+							return yield this._a(this._b(), this._b());
+						},
+					}, new Crank.Extern());
+				}, {
+					name: 'Error',
+					message: 'Duplicated `.setDone()`.',
+				});
+			});
+
 			it('should throw if calling instruction.execute in program', async function () {
 				const CustomEngineProxy = Crank.defineEngine({}, {
 					b: () => {
@@ -166,7 +257,7 @@ describe('::defineEngine()', function () {
 					}, new Crank.Extern());
 				}, {
 					name: 'Error',
-					message: 'Instruction can\'t execute.',
+					message: 'Instruction can NOT be `.execute()`.',
 				});
 			});
 
@@ -255,7 +346,7 @@ describe('::defineEngine()', function () {
 					}, new Crank.Extern());
 				}, {
 					name: 'Error',
-					message: 'Calling is\'t current instruction.',
+					message: 'Calling is not current instruction.',
 				});
 			});
 

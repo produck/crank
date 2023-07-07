@@ -6,7 +6,11 @@ interface Program {
 	[key: string]: Fn;
 }
 
-type InstructionToken = Readonly<{ token: true }>;
+type InstructionToken = Readonly<{
+	readonly done: boolean;
+	setDone: () => void;
+	execute: () => Promise<any>
+}>;
 
 interface Executors {
 	[key: string]: (
@@ -56,7 +60,7 @@ interface Options {
 	name?: string;
 	call?: (process: ProcessProxy, childFrame: FrameProxy, next: ChainNext) => any;
 	Extern?: typeof Extern | typeof CustomExtern;
-	abort?: (process: ProcessProxy) => boolean;
+	abort?: (last: InstructionToken, process: ProcessProxy) => boolean;
 }
 
 declare class EngineProxy<

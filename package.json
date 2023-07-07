@@ -16,7 +16,6 @@
   },
   "workspaces": [
     "packages/crank",
-    "packages/example",
-    "packages/parallel"
+    "packages/example"
   ]
 }

@@ -8,8 +8,8 @@ export function defineEngine(...args) {
 	const executors =	Options.normalizeExecutors(...args.slice(1, 2));
 
 	class CustomCallInstruction extends Instruction.Call {
-		async _abort() {
-			const flag = await options.abort(this.process.proxy);
+		async _abort(last) {
+			const flag = await options.abort(last, this.process.proxy);
 
 			if (typeof flag !== 'boolean') {
 				Utils.TypeError('flag <= options.abort()', 'boolean or Promise<boolean>');
