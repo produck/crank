@@ -4,6 +4,7 @@ import { webcrypto as crypto } from 'node:crypto';
 export const executors = {
 	val(process, ...args) {
 		const extern = process.extern;
+
 		return extern.dump.fetchValue(args);
 	},
 	run(process, ...args) {

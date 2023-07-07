@@ -9,7 +9,7 @@
 	"keywords": [],
 	"author": "Leoword <leoword@qq.com>",
 	"homepage": "https://github.com/produck/crank#readme",
-	"main": "index.mjs",
+	"main": "src/index.gen.cjs",
 	"type": "module",
 	"exports": {
 		"import": "./src/index.mjs",

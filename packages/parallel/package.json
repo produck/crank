@@ -1,0 +1,34 @@
+{
+  "name": "@produck/crank-parallel",
+  "version": "0.0.0",
+  "description": "Parallel executors for Crank",
+	"publishConfig": {
+		"access": "public"
+	},
+  "main": "src/index.gen.cjs",
+  "scripts": {
+    "test": "mocha test/** -t 99999999",
+		"build": "rollup -c script/rollup.config.mjs",
+		"prepublishOnly": "npm run build"
+  },
+  "author": "Leoword <leoword@qq.com>",
+	"homepage": "https://github.com/produck/crank#readme",
+	"exports": {
+		"import": "./src/index.mjs",
+		"require": "./src/index.gen.cjs"
+	},
+	"files": [
+		"src"
+	],
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/produck/crank"
+	},
+	"bugs": {
+		"url": "https://github.com/produck/crank/issues"
+	},
+  "license": "MIT",
+  "devDependencies": {
+    "mocha": "^10.2.0"
+  }
+}

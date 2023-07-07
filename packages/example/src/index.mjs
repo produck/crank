@@ -17,6 +17,4 @@ const extern = new Engine.Extern({
 	dump: dump,
 	finished: {},
 });
-new Engine().execute(program, extern).then(ret => {
-	console.log(extern.creating, dump.data.values[0]);
-});
+new Engine().execute(program, extern);

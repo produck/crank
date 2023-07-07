@@ -7,9 +7,7 @@ export const program = {
 
 		while (!ok && count < 3) {
 			try {
-				yield this._run('baz', {});
-
-				return yield this.GET();
+				return yield this._run('baz', {});
 			} catch (error) {
 				cause = error;
 			}
@@ -20,9 +18,11 @@ export const program = {
 		throw new Error('SAT failed 3 time.', { cause });
 	},
 	*main() {
-		return yield this._all([
+		yield this._all([
 			this.SAT(),
 			this.SAT(),
 		]);
+
+		return yield this.GET();
 	},
 };
