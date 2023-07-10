@@ -6,7 +6,7 @@
 [![NPM](https://img.shields.io/npm/l/@produck/crank)](https://opensource.org/licenses/MIT)
 
 # crank
-The framework is to generate program execution engine. You should provide `executors`, `program` and `extern` that is customized. By providing as mentioned above, you can customize the functions of engine. And then you will get the result of execution.THe execution of program support async function and common functon.
+The framework is to generate program execution engine. You should provide `executors`, `program` and `extern` that is customized. By providing as mentioned above, you can customize the functions of engine. And then you will get the result of execution. The execution of program support async function and common functon.
 
 ## Installation
 ```
@@ -28,11 +28,11 @@ const extern = new CustomEngine.Extern();
 const vm = new CustomEngine();
 
 const ret = vm.execute({
-	*SAT() {
+	*foo() {
 		return yield this._a();
 	},
 	*main() {
-		return yield this.SAT();
+		return yield this.foo();
 	},
 }, extern).then(value => {
 	console.log(value); // 'pass'
@@ -72,10 +72,10 @@ const Engine = Crank.define();
 ### Creating a Engine class by custom options
 You can customize Engine features by custom options.
 
-`options.name`: the name of Engine class.\
-`options.call`: customized the calling of functions.\
-`options.Extern`: customized Extern, should be subclass of Crank.Extern.\
-`options.abort`: customize when to abort the running program.
+`options.name`: The name of Engine class.\
+`options.call`: Customized the calling of functions.\
+`options.Extern`: Customized Extern, should be subclass of `Crank.Extern`.\
+`options.abort`: Customize when to abort the running program.
 ```js
 import * as Crank from '@produck/crank';
 
@@ -105,7 +105,7 @@ const Engine = Crank.define({}, {
 ```
 
 ### Execute a program
-You can execute program and get returnValue.
+You can execute program and get returned value.
 
 The function of program should be `GeneratorFunction` or `AsyncGeneratorFunction`.\
 The `main` function is required.\
