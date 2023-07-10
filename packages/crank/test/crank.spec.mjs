@@ -468,7 +468,6 @@ describe('::Instruction', function () {
 			};
 
 			const callInstruction = new Instruction.Call(process, (function *a () {
-				const a = 1;
 				const instruction = new Instruction.Call(process, (function *b () {
 
 				})());
