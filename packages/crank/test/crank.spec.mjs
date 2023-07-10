@@ -141,6 +141,7 @@ describe('::defineEngine()', function () {
 						return yield this._b();
 					},
 					async *main() {
+						yield this.SAT();
 						return yield this._a(this._b(), this._b());
 					},
 				}, new Crank.Extern());
@@ -151,7 +152,11 @@ describe('::defineEngine()', function () {
 			});
 
 			it('should calling instruction.setDone in instruction.', async function () {
-				const CustomEngineProxy = Crank.defineEngine({}, {
+				const CustomEngineProxy = Crank.defineEngine({
+					abort: (instruction) => {
+						return !instruction.done;
+					},
+				}, {
 					b: () => {
 						return Promise.resolve(1);
 					},
@@ -180,10 +185,20 @@ describe('::defineEngine()', function () {
 
 				const ret = await vm.execute({
 					async *SAT() {
-						return yield this._b();
+						const token = this._b();
+
+						token.setDone();
+
+						return yield token;
 					},
 					async *main() {
-						return yield this._a(this._b(), this._b());
+						yield this.SAT();
+
+						const token = this._a(this._b(), this._b());
+
+						token.setDone();
+
+						return yield token;
 					},
 				}, new Crank.Extern());
 
@@ -447,10 +462,19 @@ describe('::Instruction', function () {
 
 	describe('::CallInstruction', function () {
 		it('should create a callInstruction by class CallInstruction.', async () => {
-			const callInstruction = new Instruction.Call({
-				top: {},
-				stack: [],
-			}, (function *a () {})());
+			const process = {
+				stack: [{}],
+				get top() { return this.stack[0]; },
+			};
+
+			const callInstruction = new Instruction.Call(process, (function *a () {
+				const a = 1;
+				const instruction = new Instruction.Call(process, (function *b () {
+
+				})());
+
+				yield instruction.token;
+			})());
 
 			await callInstruction.execute();
 		});
