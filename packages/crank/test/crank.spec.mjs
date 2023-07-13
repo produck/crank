@@ -372,8 +372,10 @@ describe('::defineEngine()', function () {
 						await next();
 
 						if (nextFrame.returnValue === 'pass') {
-							currentFrame.returnValue = 'change return value';
+							nextFrame.returnValue = 'change return value';
 						}
+
+						assert.ok(currentFrame !== nextFrame);
 					},
 				}, {
 					a: async () => {

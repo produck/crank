@@ -98,15 +98,14 @@ export class CallInstruction extends Instruction {
 
 	async _execute() {
 		const nextFrame = new Frame();
-
-		this.process.stack.unshift(nextFrame);
-
 		let called = false;
 
 		await this._invoke(nextFrame, async () => {
 			if (called) {
 				Utils.RuntimeError('Multiple calling in options.call.');
 			}
+
+			this.process.stack.unshift(nextFrame);
 
 			called = true;
 			await this.begin(nextFrame);

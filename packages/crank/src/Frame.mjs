@@ -18,7 +18,7 @@ export class Frame {
 	proxy = new FrameProxy(this);
 	currentInstruction = null;
 	isKernal = false;
-	ret = null;
+	ret;
 }
 
 
