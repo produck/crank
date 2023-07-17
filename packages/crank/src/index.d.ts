@@ -7,17 +7,16 @@ interface Program {
 }
 
 type InstructionToken = Readonly<{
-	readonly done: boolean;
-	setDone: () => void;
+	readonly process: ProcessProxy,
+	readonly frame: FrameProxy,
 	execute: () => Promise<any>
 }>;
 
 interface Executors {
 	[key: string]: (
 		this: undefined,
-		process: ProcessProxy,
 		token: InstructionToken,
-		...args: any[]
+		args: any[]
 	) => any;
 }
 
@@ -59,9 +58,9 @@ type ChainNext = () => Promise<undefined>
 
 interface Options {
 	name?: string;
-	call?: (process: ProcessProxy, childFrame: FrameProxy, next: ChainNext) => any;
+	call?: (token: InstructionToken, next: ChainNext, childFrame: FrameProxy) => any;
 	Extern?: typeof Extern | typeof CustomExtern;
-	abort?: (last: InstructionToken, process: ProcessProxy) => boolean;
+	abort?: (token: InstructionToken, last: InstructionToken) => boolean;
 }
 
 declare class EngineProxy<

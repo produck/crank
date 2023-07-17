@@ -46,7 +46,7 @@ describe('::defineEngine()', function () {
 	it('should throw if multiple calling options.call.', async function () {
 		await assert.rejects(async () => {
 			const CustomEngineProxy = Crank.defineEngine({
-				call: async function (_p, _n, next) {
+				call: async function (token, next, _n) {
 					await next();
 					await next();
 				},
@@ -91,8 +91,8 @@ describe('::defineEngine()', function () {
 				const extern = new Crank.Extern();
 
 				const CustomEngineProxy = Crank.defineEngine({}, {
-					a: async (process) => {
-						process.top.returnValue = 'pass';
+					a: async (token, args) => {
+						token.frame.returnValue = 'pass';
 
 						return 'pass';
 					},
@@ -117,7 +117,7 @@ describe('::defineEngine()', function () {
 					b: () => {
 						return Promise.resolve(1);
 					},
-					a: async (proxy, toekn, ...args) => {
+					a: async (token, args) => {
 						const ret = [];
 
 						for (const item of args) {
@@ -129,6 +129,8 @@ describe('::defineEngine()', function () {
 								ret.push(item);
 							}
 						}
+
+						assert.deepEqual(token.frame, token.process.top);
 
 						return ret;
 					},
@@ -149,98 +151,6 @@ describe('::defineEngine()', function () {
 				assert.deepEqual(ret, [
 					1, 1,
 				]);
-			});
-
-			it('should calling instruction.setDone in instruction.', async function () {
-				const CustomEngineProxy = Crank.defineEngine({
-					abort: (instruction) => {
-						return !instruction.done;
-					},
-				}, {
-					b: (proxy, token) => {
-						token.setDone();
-
-						return Promise.resolve(1);
-					},
-					a: async (proxy, token, ...args) => {
-						const ret = [];
-
-						for (const item of args) {
-							if (Crank.isToken(item)) {
-								await item.execute();
-
-								ret.push(item.done);
-							} else {
-								ret.push(item);
-							}
-						}
-
-						token.setDone();
-
-						return ret;
-					},
-				});
-
-				const vm = new CustomEngineProxy();
-
-				const ret = await vm.execute({
-					async *SAT() {
-						return yield this._b();
-					},
-					async *main() {
-						yield this.SAT();
-
-						return yield this._a(this._b(), this._b());
-					},
-				}, new Crank.Extern());
-
-				assert.deepEqual(ret, [
-					true, true,
-				]);
-			});
-
-			it('should throw if duplicate calling instruction.setDone in instruction.', async function () {
-				const CustomEngineProxy = Crank.defineEngine({}, {
-					b: (proxy, token) => {
-						token.setDone();
-
-						return Promise.resolve(1);
-					},
-					a: async (proxy, token, ...args) => {
-						const ret = [];
-
-						for (const item of args) {
-							if (Crank.isToken(item)) {
-								await item.execute();
-
-								ret.push(item.done);
-							} else {
-								ret.push(item);
-							}
-						}
-
-						token.setDone();
-						token.setDone();
-
-						return ret;
-					},
-				});
-
-				const vm = new CustomEngineProxy();
-
-				assert.rejects(async () => {
-					await vm.execute({
-						async *SAT() {
-							return yield this._b();
-						},
-						async *main() {
-							return yield this._a(this._b(), this._b());
-						},
-					}, new Crank.Extern());
-				}, {
-					name: 'Error',
-					message: 'Duplicated `.setDone()`.',
-				});
 			});
 
 			it('should throw if calling instruction.execute in program', async function () {
@@ -359,8 +269,8 @@ describe('::defineEngine()', function () {
 
 			it('should change return value if change frame.returnValue.', async function () {
 				const CustomEngineProxy = Crank.defineEngine({
-					async call(_p, nextFrame, next) {
-						const currentFrame = _p.top;
+					async call(token, next, nextFrame) {
+						const currentFrame = token.frame;
 						await next();
 
 						if (nextFrame.returnValue === 'pass') {
@@ -399,8 +309,8 @@ describe('::defineEngine()', function () {
 				const CustomEngineProxy = Crank.defineEngine({
 					Extern: CustomExtern,
 				}, {
-					a: async function (process) {
-						process.extern.name = `${process.extern.name} extern`;
+					a: async function (token, args) {
+						token.process.extern.name = `${token.process.extern.name} extern`;
 
 						return await Promise.resolve(1);
 					},

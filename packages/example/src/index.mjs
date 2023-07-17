@@ -5,7 +5,7 @@ import { dump } from './dump.mjs';
 
 const Engine = Crank.defineEngine({
 	Extern: CutomExtern,
-	call: async (process, nextFrame, next) => {
+	call: async (token, next, nextFrame) => {
 		await next();
 	},
 }, executors);

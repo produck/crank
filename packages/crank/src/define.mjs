@@ -9,7 +9,7 @@ export function defineEngine(...args) {
 
 	class CustomCallInstruction extends Instruction.Call {
 		async _abort(last) {
-			const flag = await options.abort(last, this.process.proxy);
+			const flag = await options.abort(this.token, last);
 
 			if (typeof flag !== 'boolean') {
 				Utils.TypeError('flag <= options.abort()', 'boolean or Promise<boolean>');
@@ -19,7 +19,7 @@ export function defineEngine(...args) {
 		}
 
 		async _invoke(nextFrame, next) {
-			await options.call(this.process.proxy, nextFrame.proxy, next);
+			await options.call(this.token, next, nextFrame.proxy);
 		}
 	}
 
@@ -38,7 +38,7 @@ export function defineEngine(...args) {
 				this.InstrucionSet[name] = {
 					[INSTRUCTION_NAME]: class extends Instruction.Base {
 						async _execute() {
-							return await executor(this.process.proxy, this.token, ...this.args);
+							return await executor(this.token, this.args);
 						}
 					},
 				}[INSTRUCTION_NAME];

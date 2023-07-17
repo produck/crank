@@ -2,13 +2,13 @@ import { isToken, Extern } from '@produck/crank';
 import { webcrypto as crypto } from 'node:crypto';
 
 export const executors = {
-	val(process, token, ...args) {
-		const extern = process.extern;
+	val(token, args) {
+		const extern = token.process.extern;
 
-		return extern.dump.fetchValue(args);
+		return extern.dump.fetchValue(...args);
 	},
-	run(process, token, ...args) {
-		const extern = process.extern;
+	run(token, args) {
+		const extern = token.process.extern;
 		const id = extern.dump.fetchValue(crypto.randomUUID());
 
 		if (!extern.hasJob(id)) {
@@ -25,10 +25,11 @@ export const executors = {
 			}
 		}
 	},
-	all: async (process, token, args) => {
+	all: async (token, args) => {
 		const ret = [];
+		const [list] = args;
 
-		for (const item of args) {
+		for (const item of list) {
 			if (isToken(item)) {
 				const val = await item.execute();
 
