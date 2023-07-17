@@ -46,7 +46,7 @@ describe('::defineEngine()', function () {
 	it('should throw if multiple calling options.call.', async function () {
 		await assert.rejects(async () => {
 			const CustomEngineProxy = Crank.defineEngine({
-				call: async function (token, next, _n) {
+				call: async function (token, next) {
 					await next();
 					await next();
 				},
@@ -91,7 +91,7 @@ describe('::defineEngine()', function () {
 				const extern = new Crank.Extern();
 
 				const CustomEngineProxy = Crank.defineEngine({}, {
-					a: async (token, args) => {
+					a: async (token) => {
 						token.frame.returnValue = 'pass';
 
 						return 'pass';
@@ -309,7 +309,7 @@ describe('::defineEngine()', function () {
 				const CustomEngineProxy = Crank.defineEngine({
 					Extern: CustomExtern,
 				}, {
-					a: async function (token, args) {
+					a: async function (token) {
 						token.process.extern.name = `${token.process.extern.name} extern`;
 
 						return await Promise.resolve(1);
