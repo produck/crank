@@ -16,6 +16,7 @@ interface Executors {
 	[key: string]: (
 		this: undefined,
 		process: ProcessProxy,
+		token: InstructionToken,
 		...args: any[]
 	) => any;
 }

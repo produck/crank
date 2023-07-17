@@ -21,6 +21,8 @@ export class Token {
 
 	constructor(instruction) {
 		this.#instruction = instruction;
+
+		Object.freeze(this);
 	}
 
 	async execute() {

@@ -92,7 +92,8 @@ describe('::defineEngine()', function () {
 
 				const CustomEngineProxy = Crank.defineEngine({}, {
 					a: async (process) => {
-						process.extern.ret = 'pass';
+						process.top.returnValue = 'pass';
+
 						return 'pass';
 					},
 				});
@@ -109,7 +110,6 @@ describe('::defineEngine()', function () {
 				}, extern);
 
 				assert.equal(ret, 'pass');
-				assert.equal(extern.ret, 'pass');
 			});
 
 			it('should calling instruction.execute in instruction.', async function () {
@@ -117,7 +117,7 @@ describe('::defineEngine()', function () {
 					b: () => {
 						return Promise.resolve(1);
 					},
-					a: async (proxy, ...args) => {
+					a: async (proxy, toekn, ...args) => {
 						const ret = [];
 
 						for (const item of args) {
@@ -157,25 +157,25 @@ describe('::defineEngine()', function () {
 						return !instruction.done;
 					},
 				}, {
-					b: () => {
+					b: (proxy, token) => {
+						token.setDone();
+
 						return Promise.resolve(1);
 					},
-					a: async (proxy, ...args) => {
+					a: async (proxy, token, ...args) => {
 						const ret = [];
 
 						for (const item of args) {
 							if (Crank.isToken(item)) {
 								await item.execute();
 
-								if (!item.done) {
-									item.setDone();
-								}
-
 								ret.push(item.done);
 							} else {
 								ret.push(item);
 							}
 						}
+
+						token.setDone();
 
 						return ret;
 					},
@@ -185,20 +185,12 @@ describe('::defineEngine()', function () {
 
 				const ret = await vm.execute({
 					async *SAT() {
-						const token = this._b();
-
-						token.setDone();
-
-						return yield token;
+						return yield this._b();
 					},
 					async *main() {
 						yield this.SAT();
 
-						const token = this._a(this._b(), this._b());
-
-						token.setDone();
-
-						return yield token;
+						return yield this._a(this._b(), this._b());
 					},
 				}, new Crank.Extern());
 
@@ -209,26 +201,26 @@ describe('::defineEngine()', function () {
 
 			it('should throw if duplicate calling instruction.setDone in instruction.', async function () {
 				const CustomEngineProxy = Crank.defineEngine({}, {
-					b: () => {
+					b: (proxy, token) => {
+						token.setDone();
+
 						return Promise.resolve(1);
 					},
-					a: async (proxy, ...args) => {
+					a: async (proxy, token, ...args) => {
 						const ret = [];
 
 						for (const item of args) {
 							if (Crank.isToken(item)) {
 								await item.execute();
 
-								if (!item.done) {
-									item.setDone();
-									item.setDone();
-								}
-
 								ret.push(item.done);
 							} else {
 								ret.push(item);
 							}
 						}
+
+						token.setDone();
+						token.setDone();
 
 						return ret;
 					},
@@ -399,7 +391,7 @@ describe('::defineEngine()', function () {
 		});
 
 		describe('.Extern', function () {
-			it('should get options.Extern.', function () {
+			it('should get options.Extern.', async function () {
 				class CustomExtern extends Crank.Extern {
 					name = 'custom';
 				}
@@ -407,7 +399,9 @@ describe('::defineEngine()', function () {
 				const CustomEngineProxy = Crank.defineEngine({
 					Extern: CustomExtern,
 				}, {
-					a: async function () {
+					a: async function (process) {
+						process.extern.name = `${process.extern.name} extern`;
+
 						return await Promise.resolve(1);
 					},
 				});
@@ -415,15 +409,19 @@ describe('::defineEngine()', function () {
 				const program = {
 					*step() {},
 					*main() {
+						yield this._a();
+
 						return yield this.step();
 					},
 				};
 
 				const CustomExternProvided = CustomEngineProxy.Extern;
+				const extern = new CustomExternProvided();
 
-				new CustomEngineProxy().execute(program, new CustomExternProvided());
+				await new CustomEngineProxy().execute(program, extern);
 
 				assert.equal(CustomExtern, CustomExternProvided);
+				assert.equal(extern.name, 'custom extern');
 			});
 		});
 	});

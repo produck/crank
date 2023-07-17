@@ -11,6 +11,8 @@ class FrameProxy {
 
 	constructor(frame) {
 		this.#frame = frame;
+
+		Object.seal(this);
 	}
 }
 

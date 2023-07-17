@@ -20,10 +20,10 @@
     "url": "https://github.com/produck/crank/issues"
   },
   "devDependencies": {
-    "@produck/crank": "^0.1.1",
+    "@produck/crank": "^0.3.0",
     "mocha": "^10.2.0"
   },
   "scripts": {
-		"run": "node ./src/index.mjs"
-	}
+    "run": "node ./src/index.mjs"
+  }
 }

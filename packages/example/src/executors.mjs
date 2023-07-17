@@ -2,12 +2,12 @@ import { isToken, Extern } from '@produck/crank';
 import { webcrypto as crypto } from 'node:crypto';
 
 export const executors = {
-	val(process, ...args) {
+	val(process, token, ...args) {
 		const extern = process.extern;
 
 		return extern.dump.fetchValue(args);
 	},
-	run(process, ...args) {
+	run(process, token, ...args) {
 		const extern = process.extern;
 		const id = extern.dump.fetchValue(crypto.randomUUID());
 
@@ -25,7 +25,7 @@ export const executors = {
 			}
 		}
 	},
-	all: async (process, args) => {
+	all: async (process, token, args) => {
 		const ret = [];
 
 		for (const item of args) {

@@ -32,6 +32,8 @@ class ProcessProxy {
 	/** @param {Process} process */
 	constructor(process) {
 		this.#process = process;
+
+		Object.freeze(this);
 	}
 }
 

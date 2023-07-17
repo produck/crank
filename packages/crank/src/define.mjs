@@ -38,7 +38,7 @@ export function defineEngine(...args) {
 				this.InstrucionSet[name] = {
 					[INSTRUCTION_NAME]: class extends Instruction.Base {
 						async _execute() {
-							return await executor(this.process.proxy, ...this.args);
+							return await executor(this.process.proxy, this.token, ...this.args);
 						}
 					},
 				}[INSTRUCTION_NAME];
@@ -64,7 +64,11 @@ export function defineEngine(...args) {
 				Utils.TypeError('extern', 'CustomExtern');
 			}
 
-			return await this.#engine.execute(program, extern);
+			return await this.#engine.execute(program, Object.seal(extern));
+		}
+
+		constructor () {
+			Object.freeze(this);
 		}
 	} }[PROXY_NAME];
 }
