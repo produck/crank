@@ -72,7 +72,7 @@ export class CallInstruction extends Instruction {
 
 			if (done) {
 				frame.ret = value;
-				this.done = true;
+				this.done = last ? last.done : true;
 
 				break;
 			}
