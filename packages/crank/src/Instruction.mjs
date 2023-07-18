@@ -72,6 +72,8 @@ export class CallInstruction extends Instruction {
 				? await routine.throw(nextValue)
 				: await routine.next(nextValue);
 
+			frame.isKernal = true;
+
 			if (done) {
 				frame.ret = value;
 
@@ -84,8 +86,6 @@ export class CallInstruction extends Instruction {
 			if (instruction !== frame.currentInstruction) {
 				Utils.RuntimeError('Calling is not current instruction.');
 			}
-
-			frame.isKernal = true;
 
 			try {
 				thrown = false;
@@ -101,17 +101,22 @@ export class CallInstruction extends Instruction {
 
 	async _execute() {
 		const nextFrame = new Frame();
-		let called = false;
+		let called = false, ok = true, error = null;
 
 		await this._invoke(nextFrame, async () => {
 			if (called) {
 				Utils.RuntimeError('Multiple calling in options.call.');
 			}
 
+			called = true;
 			this.process.stack.unshift(nextFrame);
 
-			called = true;
-			await this.begin(nextFrame);
+			try {
+				await this.begin(nextFrame);
+			} catch (_error) {
+				ok = false;
+				error = _error;
+			}
 		});
 
 		if (!called) {
@@ -120,7 +125,11 @@ export class CallInstruction extends Instruction {
 
 		this.process.stack.shift();
 
-		return nextFrame.ret;
+		if (ok) {
+			return nextFrame.ret;
+		} else {
+			throw error;
+		}
 	}
 
 	async _invoke(_nextFrame, next) {

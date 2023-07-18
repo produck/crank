@@ -298,6 +298,24 @@ describe('::defineEngine()', function () {
 
 				assert.equal(ret, 'change return value');
 			});
+
+			it('should throw an error', async function () {
+				const CustomEngineProxy = Crank.defineEngine();
+				const vm = new CustomEngineProxy();
+
+				await vm.execute({
+					*a() {
+						yield 1;
+					},
+					*main() {
+						try {
+							yield this.a();
+						} catch {
+							'ignore';
+						}
+					},
+				}, new Crank.Extern());
+			});
 		});
 
 		describe('.Extern', function () {
