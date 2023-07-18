@@ -316,6 +316,65 @@ describe('::defineEngine()', function () {
 					},
 				}, new Crank.Extern());
 			});
+
+			it('should execute a complex program.', async function () {
+				const extern = new Crank.Extern();
+
+				const CustomEngineProxy = Crank.defineEngine({}, {
+					all: async (token, args) => {
+						const ret = [];
+
+						for (const item of args) {
+							if (Crank.isToken(item)) {
+								let value;
+
+								try {
+									value = await item.execute();
+								} catch (error) {
+									value = error;
+								}
+
+								ret.push(value);
+							} else {
+								ret.push(item);
+							}
+						}
+
+						return ret;
+					},
+				});
+
+				const vm = new CustomEngineProxy();
+
+				const ret = await vm.execute({
+					*SAT() {
+						let count = 0, cause = null, ok = false;
+
+						while (!ok && count < 3) {
+							try {
+								return yield this._run('foo', {});
+							} catch (error) {
+								cause = error;
+							}
+
+							count++;
+						}
+
+						throw new Error('SAT failed 3 time.', { cause });
+					},
+					*main() {
+						return yield this._all(
+							this.SAT(),
+							this.SAT(),
+						);
+					},
+				}, extern);
+
+				assert.deepEqual(ret, [
+					new Error('SAT failed 3 time.'),
+					new Error('SAT failed 3 time.'),
+				]);
+			});
 		});
 
 		describe('.Extern', function () {
