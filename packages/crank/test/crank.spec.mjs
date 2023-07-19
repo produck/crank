@@ -101,11 +101,11 @@ describe('::defineEngine()', function () {
 				const vm = new CustomEngineProxy();
 
 				const ret = await vm.execute({
-					*SAT() {
+					*foo() {
 						return yield this._a();
 					},
 					*main() {
-						return yield this.SAT();
+						return yield this.foo();
 					},
 				}, extern);
 
@@ -139,11 +139,11 @@ describe('::defineEngine()', function () {
 				const vm = new CustomEngineProxy();
 
 				const ret = await vm.execute({
-					async *SAT() {
+					async *foo() {
 						return yield this._b();
 					},
 					async *main() {
-						yield this.SAT();
+						yield this.foo();
 						return yield this._a(this._b(), this._b());
 					},
 				}, new Crank.Extern());
@@ -164,7 +164,7 @@ describe('::defineEngine()', function () {
 
 				await assert.rejects(async () => {
 					await vm.execute({
-						async *SAT() {
+						async *foo() {
 							return yield this._b();
 						},
 						async *main() {
@@ -207,11 +207,11 @@ describe('::defineEngine()', function () {
 
 				await assert.rejects(async () => {
 					await vm.execute({
-						*SAT() {
+						*foo() {
 							return yield this._a();
 						},
 						*main() {
-							return yield this.SAT();
+							return yield this.foo();
 						},
 					}, new Crank.Extern());
 				}, {
@@ -228,7 +228,7 @@ describe('::defineEngine()', function () {
 				await assert.rejects(async () => {
 					await vm.execute({
 						*main() {
-							return yield this.SAT();
+							return yield this.foo();
 						},
 					}, new Crank.Extern());
 				}, {
@@ -251,12 +251,12 @@ describe('::defineEngine()', function () {
 
 				await assert.rejects(async () => {
 					await vm.execute({
-						*SAT() {
+						*foo() {
 							return yield this._b();
 						},
 						*main() {
 							const token = this._a();
-							yield this.SAT();
+							yield this.foo();
 
 							return yield token;
 						},
@@ -288,11 +288,11 @@ describe('::defineEngine()', function () {
 				const vm = new CustomEngineProxy();
 
 				const ret = await vm.execute({
-					*SAT() {
+					*foo() {
 						return yield this._a();
 					},
 					*main() {
-						return yield this.SAT();
+						return yield this.foo();
 					},
 				}, new Crank.Extern());
 
@@ -347,7 +347,7 @@ describe('::defineEngine()', function () {
 				const vm = new CustomEngineProxy();
 
 				const ret = await vm.execute({
-					*SAT() {
+					*foo() {
 						let count = 0, cause = null, ok = false;
 
 						while (!ok && count < 3) {
@@ -360,20 +360,60 @@ describe('::defineEngine()', function () {
 							count++;
 						}
 
-						throw new Error('SAT failed 3 time.', { cause });
+						throw new Error('foo failed 3 time.', { cause });
 					},
 					*main() {
 						return yield this._all(
-							this.SAT(),
-							this.SAT(),
+							this.foo(),
+							this.foo(),
 						);
 					},
 				}, extern);
 
 				assert.deepEqual(ret, [
-					new Error('SAT failed 3 time.'),
-					new Error('SAT failed 3 time.'),
+					new Error('foo failed 3 time.'),
+					new Error('foo failed 3 time.'),
 				]);
+			});
+
+			it('should return [{}, {}]', async function () {
+				const sleep = (ms = 1000) => new Promise(resolve => setTimeout(resolve, ms));
+
+				const CustomEngineProxy = Crank.defineEngine({}, {
+					async foo(token, args) {
+						const [ms] = args;
+
+						if (ms <= 1000) {
+							return 1;
+						} else {
+							throw new Error('Overtime.');
+						}
+					},
+				});
+				const vm = new CustomEngineProxy();
+
+				const ret = await Promise.allSettled([
+					vm.execute({
+						async *main() {
+							await sleep(1000);
+
+							return yield this._foo(2000);
+						},
+					}, new Crank.Extern()),
+					vm.execute({
+						async *main() {
+							await sleep(1000);
+
+							return yield this._foo(1000);
+						},
+					}, new Crank.Extern()),
+				]);
+
+				assert.deepEqual(ret, [{
+					status: 'rejected', reason: new Error('Overtime.'),
+				}, {
+					status: 'fulfilled', value: 1,
+				}]);
 			});
 		});
 
